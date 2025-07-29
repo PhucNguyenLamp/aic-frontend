@@ -21,6 +21,7 @@
     "axios": "^1.11.0",
     "blockly": "^12.2.0",
     "clsx": "^2.1.1",
+    "moveable": "^0.53.0",
     "react": "^19.1.0",
     "react-blockly": "^9.0.0",
     "react-dom": "^19.1.0",
