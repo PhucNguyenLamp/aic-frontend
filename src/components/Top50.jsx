@@ -46,11 +46,7 @@ export default function Top50({ images }) {
             } else
                 return 0;
         });
-        if (sortOption === "d" && defaultSort) {
-            setSortedImages(defaultSort);
-        } else {
-            setSortedImages(newSortedImages);
-        }
+        setSortedImages(newSortedImages);
     }, [sortOption])
 
     useEffect(() => {
@@ -141,7 +137,7 @@ export default function Top50({ images }) {
             undoRef.current.push(sortedImages);
             redoRef.current = [];
             setDefaultSort(newImages);
-            setSortOption("d"); 
+            setSortOption("d");
         }
 
         document.addEventListener("mouseup", handleDragUp);
