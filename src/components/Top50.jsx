@@ -8,7 +8,8 @@ import clsx from "clsx";
 import SplitPane from "react-split-pane";
 
 export default function Top50({ images }) {
-    const undostackRef = useRef([])
+    const undoRef = useRef([])
+    const redoRef = useRef([])
     const selectoRef = useRef(null);
     const [sortedImages, setSortedImages] = useState(images);
     const [sortOption, setSortOption] = useState("d");
@@ -19,6 +20,19 @@ export default function Top50({ images }) {
         setIsOpenModal(true);
     };
     const undo = () => {
+        if (undoRef.current.length > 0) {
+            const lastState = undoRef.current.pop();
+            redoRef.current.push(sortedImages);
+            setSortedImages(lastState);
+        }
+    }
+
+    const redo = () => {
+        if (redoRef.current.length > 0) {
+            const lastState = redoRef.current.pop();
+            undoRef.current.push(sortedImages);
+            setSortedImages(lastState);
+        }
     }
 
     const [defaultSort, setDefaultSort] = useState(null);
@@ -49,6 +63,8 @@ export default function Top50({ images }) {
                 });
                 const newSortedImages = sortedImages.filter(image => !selectedKeys.includes(`${image.key}-${image.video_id}-${image.group_id}`));
                 setSortedImages(newSortedImages);
+                undoRef.current.push(sortedImages);
+                redoRef.current = [];
             }
             // control + a, select all
             if (e.ctrlKey && e.key.toLowerCase() === "a") {
@@ -59,6 +75,15 @@ export default function Top50({ images }) {
                     el.classList.add("selected");
                 });
                 selectoRef.current.setSelectedTargets(Array.from(allElements));
+            }
+
+            if (e.ctrlKey && e.key.toLowerCase() === "z") {
+                e.preventDefault();
+                undo();
+            }
+            if (e.ctrlKey && e.key.toLowerCase() === "y") {
+                e.preventDefault();
+                redo();
             }
         }
         document.addEventListener("keydown", handleKeyDown);
@@ -113,6 +138,8 @@ export default function Top50({ images }) {
             ];
 
             setSortedImages(newImages);
+            undoRef.current.push(sortedImages);
+            redoRef.current = [];
             setDefaultSort(newImages);
             setSortOption("d"); 
         }
@@ -192,7 +219,8 @@ export default function Top50({ images }) {
                 }}
             >
                 <div className="relative elements overflow-y-scroll w-full container">
-                    <Button className="h-[56px]" onClick={undo}>↩️</Button>
+                    <Button className="h-[56px]" disabled={undoRef.current.length === 0} onClick={undo}>↩️</Button>
+                    <Button className="h-[56px]" disabled={redoRef.current.length === 0} onClick={redo}>↪️</Button>
                     <Select
                         value={sortOption}
                         label="Sort By"
@@ -224,7 +252,7 @@ export default function Top50({ images }) {
                 </div>
                 <Videos handleOpen={handleOpen} />
             </SplitPane>
-            <VideoModal images={sortedImages} image={modalImage} open={isOpenModal} onClose={() => setIsOpenModal(false)} setSortedImages={setSortedImages} />
+            <VideoModal images={sortedImages} image={modalImage} open={isOpenModal} onClose={() => setIsOpenModal(false)} setSortedImages={setSortedImages} undoRef={undoRef} redoRef={redoRef} />
 
         </div>
 

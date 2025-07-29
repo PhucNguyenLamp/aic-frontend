@@ -5,7 +5,7 @@ import VideoJS from './VideoJS';
 import React from 'react';
 import { videoPath } from '../utils/imagePath';
 
-export default function VideoModal({ image, open, onClose, images, setSortedImages }) {
+export default function VideoModal({ image, open, onClose, images, setSortedImages, undoRef, redoRef }) {
     const playerRef = React.useRef(null);
     const intervalRef = React.useRef(null);
     const timeoutRef = React.useRef(null);
@@ -108,9 +108,10 @@ export default function VideoModal({ image, open, onClose, images, setSortedImag
                 fps: fps,
                 confidence: 1.0, // because we picked this frame
             };
-
+ 
             setSortedImages(prev => [...prev, newImage]);
-
+            undoRef.current.push(images);
+            redoRef.current = []; 
             onClose();
         }, "image/webp", 0.9);
 
