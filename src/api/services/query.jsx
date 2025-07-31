@@ -86,3 +86,73 @@ export const getVideoByGroupVideoId = async (
 
     return blob;
 };
+
+export const getHistory = async () => {
+    return Promise.resolve([
+        {
+            "images": [], // lưu state luôn, tính sau
+            "workspace": {
+                "par": [
+                    {
+                        "seq": [
+                            {
+                                "q": {
+                                    "text": "text",
+                                    "type": "TEXT"
+                                }
+                            },
+                            {
+                                "q": {
+                                    "text": "text",
+                                    "type": "TEXT"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "q": {
+                            "text": "text",
+                            "type": "TEXT"
+                        }
+                    }
+                ]
+            }, // lưu query nè
+        },
+        {
+            "images": [],
+            "workspace": {
+                "par": [
+                    {
+                        "seq": [
+                            {
+                                "q": {
+                                    "text": "text",
+                                    "type": "TEXT"
+                                }
+                            },
+                            {
+                                "q": {
+                                    "text": "text",
+                                    "type": "TEXT"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "q": {
+                            "text": "text",
+                            "type": "TEXT"
+                        }
+                    }
+                ]
+            },
+        }
+    ]);
+};
+
+export const syncHistory = async (history) => {
+    // This function would typically send the updated history to the server
+    // For now, we just log it to the console
+    console.log("Syncing history:", history);
+    return Promise.resolve(history);
+};

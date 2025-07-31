@@ -4,13 +4,12 @@ export function registerCustomBlocks() {
     Blockly.Blocks['query_block'] = {
         init: function () {
             this.appendDummyInput()
-                .appendField("")
-                .appendField(new Blockly.FieldTextInput("text"), "TEXT")
                 .appendField(new Blockly.FieldDropdown([
                     ["📝", "TEXT"],
                     ["📷", "OBJECT"],
                     ["🎤", "AUDIO"]
-                ]), "TYPE");
+                ]), "TYPE")
+                .appendField(new Blockly.FieldTextInput("text"), "TEXT")
             this.setPreviousStatement(true);
             this.setNextStatement(true);
             this.setColour(160);

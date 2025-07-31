@@ -1,33 +1,26 @@
 // Queries.jsx
 import { Button } from '@mui/material'
 import QueryBuilder from './QueryBuilder.jsx'
-import { useState, useCallback } from 'react';
-import * as Blockly from 'blockly';
+import { useRef } from 'react';
 
-export default function Queries({ sendData, workspace, setWorkspace }) {
-    const [workspaceData, setWorkspaceData] = useState(null);
+export default function Queries({ sendData }) {
+    const workspaceRef = useRef(null);
 
     const handleSubmit = () => {
-        // format to readible json
-        const formattedData = formatFn(workspaceData)
-        console.log("Formatted Data:", JSON.stringify(formattedData, null, 2));
-        sendData?.(formattedData);
-
+        const formattedData = formatFn(workspaceRef.current)
+        // console.log("Formatted Data:", JSON.stringify(formattedData, null, 2));
+        console.log(workspaceRef.current);
+        sendData?.(formattedData);0.
+        
     }
-
-    const handleWorkspaceChange = useCallback((workspace) => {
-        const json = Blockly.serialization.workspaces.save(workspace);
-        setWorkspaceData(json);
-    }, []); // Empty dependency array since we don't depend on any props/state
 
     return (
         <div className='flex-1 flex flex-col w-full h-full justify-between'>
-            <QueryBuilder onWorkspaceChange={handleWorkspaceChange} setWorkspaceInstance={setWorkspace} />
+            <QueryBuilder workspaceRef={workspaceRef}/>
             <Button
                 variant="contained"
                 color="primary"
                 onClick={handleSubmit}
-                disabled={!workspaceData}
             >
                 Submit
             </Button>
@@ -74,7 +67,6 @@ const formatFn = (workspaceJson) => {
         return list;
     };
 
-    // Entry point: the first block
     const root = workspaceJson.blocks?.blocks?.[0];
     return walk(root);
 };

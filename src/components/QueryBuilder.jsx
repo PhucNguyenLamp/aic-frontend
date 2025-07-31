@@ -2,6 +2,29 @@
 import React, { useRef, useState, useCallback } from 'react';
 import { BlocklyWorkspace } from 'react-blockly';
 import './customBlocks';
+import * as Blockly from 'blockly';
+
+export default function QueryBuilder({ workspaceRef }) {
+
+    return (
+        <div className='flex-1 w-full flex flex-col'>
+            <BlocklyWorkspace
+                toolboxConfiguration={toolbox}
+                // initialXml={workspaceXML}
+                className="flex-1 w-full"
+                workspaceConfiguration={{
+                    toolboxPosition: 'top',
+                    horizontalLayout: true,
+                    scrollbars: false,
+                    trashcan: true
+                }}
+                onWorkspaceChange={(workspace) => {
+                    workspaceRef.current = Blockly.serialization.workspaces.save(workspace);
+                }}
+            />
+        </div>
+    );
+}
 
 const toolbox = {
     kind: 'flyoutToolbox',
@@ -21,38 +44,3 @@ const toolbox = {
     ]
 };
 
-export default function QueryBuilder({ onWorkspaceChange, setWorkspaceInstance }) {
-    const [workspaceXML, setWorkspaceXML] = useState('');
-    const workspaceRef = useRef(null);
-
-    const handleWorkspaceReady = useCallback((workspace) => {
-        onWorkspaceChange?.(workspace);
-        setWorkspaceInstance?.(workspace); // 👈 expose workspace to parent
-    }, [onWorkspaceChange, setWorkspaceInstance]);
-
-    return (
-        <div className='flex-1 w-full flex flex-col'>
-            <BlocklyWorkspace
-                ref={workspaceRef}
-                toolboxConfiguration={toolbox}
-                initialXml={workspaceXML}
-                className="flex-1 w-full"
-                workspaceConfiguration={{
-                    toolboxPosition: 'top',
-                    horizontalLayout: true,
-                    scrollbars: false,
-                    trashcan: true
-                }}
-                onXmlChange={(xml) => {
-                    setWorkspaceXML(xml);
-                    const workspace = workspaceRef.current?.workspace;
-                    if (workspace) {
-                        onWorkspaceChange?.(workspace);
-                        setWorkspaceInstance?.(workspace);
-                    }
-                }}
-                onWorkspaceChange={handleWorkspaceReady}
-            />
-        </div>
-    );
-}
