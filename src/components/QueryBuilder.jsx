@@ -19,7 +19,7 @@ export default function QueryBuilder({ workspaceRef }) {
                     trashcan: true
                 }}
                 onWorkspaceChange={(workspace) => {
-                    workspaceRef.current = Blockly.serialization.workspaces.save(workspace);
+                    workspaceRef.current = workspace;
                 }}
             />
         </div>

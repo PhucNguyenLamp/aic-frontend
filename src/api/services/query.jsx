@@ -92,60 +92,34 @@ export const getHistory = async () => {
         {
             "images": [], // lưu state luôn, tính sau
             "workspace": {
-                "par": [
-                    {
-                        "seq": [
-                            {
-                                "q": {
-                                    "text": "text",
-                                    "type": "TEXT"
-                                }
-                            },
-                            {
-                                "q": {
-                                    "text": "text",
-                                    "type": "TEXT"
+                "blocks": {
+                    "languageVersion": 0,
+                    "blocks": [
+                        {
+                            "type": "sequential_block",
+                            "id": "0[H,Mw3|WvbPz-uh@ZX$",
+                            "x": 123,
+                            "y": 48,
+                            "inputs": {
+                                "STACK": {
+                                    "block": {
+                                        "type": "query_block",
+                                        "id": "yuX:)era95?cgKM|Ww-S",
+                                        "fields": {
+                                            "TYPE": "TEXT",
+                                            "TEXT": "text"
+                                        }
+                                    }
                                 }
                             }
-                        ]
-                    },
-                    {
-                        "q": {
-                            "text": "text",
-                            "type": "TEXT"
                         }
-                    }
-                ]
-            }, // lưu query nè
+                    ]
+                }
+            }
         },
         {
             "images": [],
-            "workspace": {
-                "par": [
-                    {
-                        "seq": [
-                            {
-                                "q": {
-                                    "text": "text",
-                                    "type": "TEXT"
-                                }
-                            },
-                            {
-                                "q": {
-                                    "text": "text",
-                                    "type": "TEXT"
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "q": {
-                            "text": "text",
-                            "type": "TEXT"
-                        }
-                    }
-                ]
-            },
+            "workspace": {},
         }
     ]);
 };

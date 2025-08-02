@@ -2,30 +2,22 @@
 import { Button } from '@mui/material'
 import QueryBuilder from './QueryBuilder.jsx'
 import { useRef } from 'react';
+import * as Blockly from 'blockly';
 
-export default function Queries({ sendData }) {
-    const workspaceRef = useRef(null);
-
+export default function Queries({ sendData, workspaceRef }) {
     const handleSubmit = () => {
-        const formattedData = formatFn(workspaceRef.current)
-        // console.log("Formatted Data:", JSON.stringify(formattedData, null, 2));
-        console.log(workspaceRef.current);
-        sendData?.(formattedData);0.
-        
-    }
+        const wsJson = Blockly.serialization.workspaces.save(workspaceRef.current);
+        const formattedData = formatFn(wsJson);
+        console.log("Formatted Data:", formattedData);
+        sendData?.(formattedData);
+    };
 
     return (
         <div className='flex-1 flex flex-col w-full h-full justify-between'>
-            <QueryBuilder workspaceRef={workspaceRef}/>
-            <Button
-                variant="contained"
-                color="primary"
-                onClick={handleSubmit}
-            >
-                Submit
-            </Button>
+            <QueryBuilder workspaceRef={workspaceRef} />
+            <Button variant="contained" onClick={handleSubmit}>Submit</Button>
         </div>
-    )
+    );
 }
 
 const formatFn = (workspaceJson) => {

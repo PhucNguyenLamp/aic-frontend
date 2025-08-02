@@ -1,46 +1,28 @@
 import Top50 from '@/components/Top50'
 import Queries from '@/components/Queries'
-import { searchKeyframes } from '@/api/services/query'
 import { Fab } from '@mui/material'
 import SplitPane from 'react-split-pane';
 import * as Blockly from 'blockly';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import HistoryModal from '@/components/HistoryModal';
 
-export default function Home() {
-    const [images, setImages] = useState([])
-
-    const sendData = async (queries) => {
-        // call api
-        const data = await searchKeyframes(queries)
-        setImages(data)
-    }
+export default function Home({ sendData, images, workspaceRef, loadHistory }) {
+    const [historyModalOpen, setHistoryModalOpen] = useState(false);
 
     return (
         <>
-            <SplitPane
-                split="vertical"
-                defaultSize={400}
-                onChange={() => {
-                    if (workspace) {
-                        setTimeout(() => {
-                            Blockly.svgResize(workspace);
-                        }, 0);
-                    }
-                }}
-
-                paneStyle={{ overflow: 'hidden' }}
-                resizerStyle={{
-                    background: '#e5e7eb',
-                    width: '4px',
-                    cursor: 'col-resize',
-                    borderLeft: '1px solid #d1d5db',
-                    borderRight: '1px solid #d1d5db'
-                }}
+            <SplitPane split="vertical" defaultSize={400} onChange={() => {
+                const ws = Blockly.getMainWorkspace();
+                if (ws) setTimeout(() => Blockly.svgResize(ws), 100);
+            }} paneStyle={{ overflow: "auto" }} resizerStyle={{
+                background: '#e5e7eb', width: '4px', cursor: 'col-resize', borderLeft: '1px solid #d1d5db', borderRight: '1px solid #d1d5db'
+            }}
             >
-                <Queries sendData={sendData} />
+                <Queries sendData={sendData} workspaceRef={workspaceRef} />
                 <Top50 images={images} />
             </SplitPane>
 
+            <HistoryModal open={historyModalOpen} onClose={() => setHistoryModalOpen(false)} loadHistory={loadHistory} />
             <Fab
                 color="primary"
                 className="!absolute bottom-4 right-4 z-50"
@@ -50,7 +32,6 @@ export default function Home() {
                         const caption = el.querySelector("span")?.textContent;
                         return caption;
                     });
-
                     console.log("Selected image keys:", selectedKeys);
                 }}
             >

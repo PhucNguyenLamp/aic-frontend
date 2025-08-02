@@ -84,7 +84,7 @@ export default function Keyframes({ undoRef, redoRef, sortedImages, setSortedIma
 
             const selectedElements = document.querySelectorAll("#selecto .image.selected");
             const currentElementMouseOn = document.elementFromPoint(e.clientX, e.clientY);
-
+            console.log(currentElementMouseOn)
             if (!currentElementMouseOn) return;
 
             const targetKey = currentElementMouseOn.getAttribute("data-key");
@@ -186,15 +186,15 @@ export default function Keyframes({ undoRef, redoRef, sortedImages, setSortedIma
             </div>
             <div className="grid grid-cols-5 gap-4 p-4" id="selecto">
                 {sortedImages?.map((image, index) => (
-                    <figure className="relative image p-2 hover:bg-[rgba(68,171,255,0.15)]"
+                    <figure className="relative image p-2 hover:bg-[rgba(68,171,255,0.15)] [&_*]:select-none [&_*]:pointer-events-none"
                         key={`${image.key}-${image.video_id}-${image.group_id}`}
                         data-key={`${image.key}-${image.video_id}-${image.group_id}`}
                         onDoubleClick={() => handleOpen(image)}
                     >
                         <img src={image.blobUrl || imagePath(image.key, image.video_id, image.group_id)}
-                            className="select-none pointer-events-none"
+                            className=""
                         />
-                        <figcaption className="flex flex-row justify-between">
+                        <figcaption className="flex flex-row justify-between ">
                             <Typography variant="caption" className=" text-center text-black bg-opacity-50 p-1 rounded">
                                 L{image.group_id} / V{image.video_id} / {image.key}
                             </Typography>
