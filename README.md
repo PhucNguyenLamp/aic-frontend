@@ -15,6 +15,11 @@ result will look like this:
 `npm run dev`
 open your browser at `localhost:5173`
 
+## Control
+`h` hoặc `esc` để mở history
+`del` khi chọn để xoá video
+`<-` `->` để di chuyển khi xem video
+
 ## Demo
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/b8a63bd4-a275-4f95-8336-98c7f162e559" />
 
