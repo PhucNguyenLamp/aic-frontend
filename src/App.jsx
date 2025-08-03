@@ -5,13 +5,12 @@ import { searchKeyframes, syncHistory } from '@/api/services/query';
 import * as Blockly from 'blockly';
 
 function App() {
-  const [historyPage, setHistoryPage] = useState(false);
   const [images, setImages] = useState([]);
-  const [history, setHistory] = useState([]);
   const workspaceRef = useRef(null);
-  
+  const undoRef = useRef([]);
+  const redoRef = useRef([]);
+
   const loadHistory = (data) => {
-    setHistoryPage(false);
     const workspace = workspaceRef.current;
     if (workspace && data.workspace) {
       loadFormattedData(data.workspace, workspace);
@@ -35,6 +34,8 @@ function App() {
             images={images}
             workspaceRef={workspaceRef}
             loadHistory={loadHistory}
+            undoRef={undoRef}
+            redoRef={redoRef}
           />
     </div>
   );

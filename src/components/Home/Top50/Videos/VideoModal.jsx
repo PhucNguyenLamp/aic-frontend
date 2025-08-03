@@ -3,7 +3,7 @@ import Button from '@mui/material/Button';
 import Modal from '@mui/material/Modal';
 import VideoJS from './VideoJS';
 import React from 'react';
-import { videoPath } from '../utils/imagePath';
+import { videoPath } from '@/utils/imagePath';
 
 export default function VideoModal({ image, open, onClose, images, setSortedImages, undoRef, redoRef }) {
     const playerRef = React.useRef(null);

@@ -1,6 +1,7 @@
-import { Modal, Box, Card } from "@mui/material";
+import { Modal, Box, Card, Button } from "@mui/material";
 import { useEffect, useState } from "react";
 import { getHistory } from "@/api/services/query";
+import QuestionsReader from "./Home/Top50/Keyframes/QuestionsReader";
 
 export default function HistoryModal({ loadHistory }) {
     const [history, setHistory] = useState([]);
@@ -16,7 +17,7 @@ export default function HistoryModal({ loadHistory }) {
 
     useEffect(() => {
         const toggle = (e) => {
-            if (e.key === 'Escape' || e.key === 'h') {
+            if (e.key === 'Escape') {
                 e.preventDefault();
                 setOpen((prev) => !prev);
             }
@@ -39,14 +40,19 @@ export default function HistoryModal({ loadHistory }) {
 
                         <div className="w-full flex flex-col gap-4 scroll-auto">
                             {history.map((item, idx) => (
-                                <Card key={idx} className="w-full p-4 cursor-pointer hover:!bg-gray-100" onClick={() => { setOpen(false); loadHistory(item) }}>
-                                    <h3>Query {idx + 1}</h3>
-                                    <p>Workspace: {item.workspace ? "✔️" : "❌"}</p>
-                                    <p>Images: {item.images.length}</p>
+                                <Card key={idx} className="w-full p-4 cursor-pointer hover:!bg-gray-100 flex flex-row justify-between" onClick={() => { setOpen(false); loadHistory(item) }}>
+                                    <Box>
+                                        <h3>Question {idx + 1}</h3>
+                                        <p>Workspace: {item.workspace ? "✔️" : "❌"}</p>
+                                        <p>Images: {item.images.length}</p>
+                                    </Box>
+                                    <Button onClick={(e) => {e.stopPropagation()} }> Delete </Button>
                                 </Card>
+                        
                             ))}
                         </div>
                     </div>
+                    <QuestionsReader />
                 </Box>
             </Modal>
         </div>

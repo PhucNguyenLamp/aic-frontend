@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import VideoModal from "./VideoModal";
-import Videos from "./Videos";
+import VideoModal from "./Videos/VideoModal";
+import Videos from "./Videos/Videos";
 import SplitPane from "react-split-pane";
-import Keyframes from "./Keyframes";
+import Keyframes from "./Keyframes/Keyframes";
 
-export default function Top50({ images }) {
-    const undoRef = useRef([])
-    const redoRef = useRef([])
+export default function Top50({ images, undoRef, redoRef }) {
+
 
     const [sortedImages, setSortedImages] = useState(images);
     const [isOpenModal, setIsOpenModal] = useState(false);

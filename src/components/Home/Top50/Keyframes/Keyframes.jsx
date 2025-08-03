@@ -1,11 +1,14 @@
-import { useState, useEffect, useRef } from "react";
-import { Button, Card, Fab, MenuItem, Select, Slider, Typography } from "@mui/material";
-import { imagePath } from "../utils/imagePath";
+import { useState, useEffect, useRef, useContext } from "react";
+import { Box, Button, Card, Fab, FormControl, InputLabel, MenuItem, Select, Slider, Typography } from "@mui/material";
+import { imagePath } from "@/utils/imagePath";
 import clsx from "clsx";
 import Selecto from "react-selecto";
+import QuestionsReader from "./QuestionsReader";
+import { AppContext } from "@/context/AppContext";
 
-export default function Keyframes({ undoRef, redoRef, sortedImages, setSortedImages, handleOpen }) {
+export default function Keyframes({ undoRef, redoRef, sortedImages, setSortedImages, handleOpen, questionsNumber }) {
     const [sortOption, setSortOption] = useState("d");
+    const { questionNumber, setQuestionNumber, questions } = useContext(AppContext);
     const selectoRef = useRef(null);
     const undo = () => {
         if (undoRef.current.length > 0) {
@@ -171,7 +174,7 @@ export default function Keyframes({ undoRef, redoRef, sortedImages, setSortedIma
                 toggleContinueSelectWithoutDeselect={[["ctrl"], ["meta"]]}
                 ratio={0}
             ></Selecto>
-            <div className="sticky">
+            <Box className="sticky flex items-center">
                 <Button className="h-[56px]" disabled={undoRef.current.length === 0} onClick={undo}>↩️</Button>
                 <Button className="h-[56px]" disabled={redoRef.current.length === 0} onClick={redo}>↪️</Button>
                 <Select
@@ -183,7 +186,26 @@ export default function Keyframes({ undoRef, redoRef, sortedImages, setSortedIma
                     <MenuItem value="g">Group</MenuItem>
                     <MenuItem value="hc">High Confidence</MenuItem>
                 </Select>
-            </div>
+                <FormControl className="max-w-[130px]" fullWidth>
+                    <InputLabel id="question-select-label">{questions.length === 0 ? "No Question" : `Question ${questionNumber}`}</InputLabel>
+                    <Select
+                        labelId="question-select-label"
+                        value={questionNumber}
+                        label="Questions"
+                        disabled={questions.length === 0}
+                        onChange={e => setQuestionNumber(e.target.value)}
+                    >
+                        {
+                            questions.map((q) => (
+                                <MenuItem key={q.fileName} value={q.fileName}>
+                                    Question {q.fileName}
+                                </MenuItem>
+                            ))
+                        }
+                    </Select>
+                </FormControl>
+                <QuestionsReader />
+            </Box>
             <div className="grid grid-cols-5 gap-4 p-4" id="selecto">
                 {sortedImages?.map((image, index) => (
                     <figure className="relative image p-2 hover:bg-[rgba(68,171,255,0.15)] [&_*]:select-none [&_*]:pointer-events-none"
