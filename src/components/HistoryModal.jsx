@@ -1,19 +1,34 @@
 import { Modal, Box, Card, Button } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { getHistory } from "@/api/services/query";
 import QuestionsReader from "./Home/Top50/Keyframes/QuestionsReader";
+import { AppContext } from "@/context/AppContext";
+import * as Blockly from 'blockly';
 
 export default function HistoryModal({ loadHistory }) {
-    const [history, setHistory] = useState([]);
+    // const [history, setHistory] = useState([]);
     const [open, setOpen] = useState(false);
+    const { questionNumber, setQuestionNumber, questions, undoRef, redoRef, images, workspaceRef } = useContext(AppContext);
 
-    useEffect(() => {
-        const fetchHistory = async () => {
-            const data = await getHistory();
-            setHistory(data);
-        };
-        fetchHistory();
-    }, []);
+    function changeWorkSpace(e) {
+        // save Workspace
+        questions[questionNumber].workspace.images = images;
+        questions[questionNumber].workspace.history.undoRef = undoRef.current;
+        questions[questionNumber].workspace.history.redoRef = redoRef.current;
+        questions[questionNumber].workspace.queries = Blockly.serialization.workspaces.save(workspaceRef.current);
+        // change currentQuestion
+        setQuestionNumber(e.target.value)
+        setOpen(false);
+    }
+
+
+    // useEffect(() => {
+    //     const fetchHistory = async () => {
+    //         const data = await getHistory();
+    //         setHistory(data);
+    //     };
+    //     fetchHistory();
+    // }, []);
 
     useEffect(() => {
         const toggle = (e) => {
@@ -35,20 +50,18 @@ export default function HistoryModal({ loadHistory }) {
                 aria-describedby="modal-modal-description"
             >
                 <Box sx={style}>
-                    <div className="relative flex justify-center w-full h-[80vh]">
-                        <div className="absolute -top-12 -left-12 text-4xl">📜</div>
-
-                        <div className="w-full flex flex-col gap-4 scroll-auto">
-                            {history.map((item, idx) => (
-                                <Card key={idx} className="w-full p-4 cursor-pointer hover:!bg-gray-100 flex flex-row justify-between" onClick={() => { setOpen(false); loadHistory(item) }}>
+                    <div className="relative flex justify-center w-full mb-2 h-[80vh]">
+                        <div className="absolute -top-12 -left-14 text-4xl">📜</div>
+                        <div className="relative h-full w-full space-y-4 p-1 overflow-y-auto">
+                            {questions.map((q, idx) => (
+                                <Card key={idx} className="w-full p-4 cursor-pointer hover:!bg-gray-100 flex flex-row justify-between" onClick={changeWorkSpace}>
                                     <Box>
-                                        <h3>Question {idx + 1}</h3>
-                                        <p>Workspace: {item.workspace ? "✔️" : "❌"}</p>
-                                        <p>Images: {item.images.length}</p>
+                                        <h3>Question {q.fileName}</h3>
+                                        <p>Workspace: {q.workspace ? "✔️" : "❌"}</p>
+                                        <p>Images: {q.workspace.images.length}</p>
                                     </Box>
                                     <Button onClick={(e) => {e.stopPropagation()} }> Delete </Button>
                                 </Card>
-                        
                             ))}
                         </div>
                     </div>

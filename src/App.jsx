@@ -1,14 +1,12 @@
 import './App.css'
-import { useEffect, useState, useRef } from 'react'
+import { useContext } from 'react'
 import Home from '@/pages/Home'
 import { searchKeyframes, syncHistory } from '@/api/services/query';
 import * as Blockly from 'blockly';
+import { AppContext } from './context/AppContext';
 
 function App() {
-  const [images, setImages] = useState([]);
-  const workspaceRef = useRef(null);
-  const undoRef = useRef([]);
-  const redoRef = useRef([]);
+  const { setImages, workspaceRef } = useContext(AppContext);
 
   const loadHistory = (data) => {
     const workspace = workspaceRef.current;
@@ -31,11 +29,7 @@ function App() {
     <div className="relative w-screen h-screen">
           <Home
             sendData={sendQuery}
-            images={images}
-            workspaceRef={workspaceRef}
             loadHistory={loadHistory}
-            undoRef={undoRef}
-            redoRef={redoRef}
           />
     </div>
   );

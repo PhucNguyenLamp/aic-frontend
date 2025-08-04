@@ -6,7 +6,7 @@ import * as Blockly from 'blockly';
 import { useState, useEffect } from 'react';
 import HistoryModal from '@/components/HistoryModal';
 
-export default function Home({ sendData, images, workspaceRef, loadHistory, undoRef, redoRef }) {
+export default function Home({ sendData, loadHistory }) {
     const [historyModalOpen, setHistoryModalOpen] = useState(false);
 
     return (
@@ -18,8 +18,8 @@ export default function Home({ sendData, images, workspaceRef, loadHistory, undo
                 background: '#e5e7eb', width: '4px', cursor: 'col-resize', borderLeft: '1px solid #d1d5db', borderRight: '1px solid #d1d5db'
             }}
             >
-                <Queries sendData={sendData} workspaceRef={workspaceRef} undoRef={undoRef} redoRef={redoRef} />
-                <Top50 images={images} undoRef={undoRef} redoRef={redoRef} />
+                <Queries sendData={sendData} />
+                <Top50 />
             </SplitPane>
 
             <HistoryModal open={historyModalOpen} onClose={() => setHistoryModalOpen(false)} loadHistory={loadHistory} />

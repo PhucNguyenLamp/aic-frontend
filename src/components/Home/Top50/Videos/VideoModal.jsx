@@ -2,10 +2,12 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Modal from '@mui/material/Modal';
 import VideoJS from './VideoJS';
-import React from 'react';
+import React, { useContext } from 'react';
 import { videoPath } from '@/utils/imagePath';
+import { AppContext } from '@/context/AppContext';
 
-export default function VideoModal({ image, open, onClose, images, setSortedImages, undoRef, redoRef }) {
+export default function VideoModal({ image, open, onClose, images, setSortedImages }) {
+    const { undoRef, redoRef } = useContext(AppContext)
     const playerRef = React.useRef(null);
     const intervalRef = React.useRef(null);
     const timeoutRef = React.useRef(null);
@@ -108,10 +110,10 @@ export default function VideoModal({ image, open, onClose, images, setSortedImag
                 fps: fps,
                 confidence: 1.0, // because we picked this frame
             };
- 
+
             setSortedImages(prev => [...prev, newImage]);
             undoRef.current.push(images);
-            redoRef.current = []; 
+            redoRef.current = [];
             onClose();
         }, "image/webp", 0.9);
 

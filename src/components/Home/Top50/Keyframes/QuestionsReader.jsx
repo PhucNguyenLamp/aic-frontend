@@ -3,7 +3,7 @@ import { useContext } from "react";
 import { AppContext } from "@/context/AppContext";
 
 export default function QuestionsReader() {
-    const { setQuestions, setQuestionNumber } = useContext(AppContext);
+    const { setQuestions } = useContext(AppContext);
     const readFileAysnc = async (file) => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -12,7 +12,7 @@ export default function QuestionsReader() {
                 const data = {
                     fileName: file.name, content: content,
                     workspace: {
-                        queries: null,
+                        queries: {},
                         images: [],
                         history: {
                             undoRef: [],
@@ -29,7 +29,6 @@ export default function QuestionsReader() {
     const readFiles = (files) => {
         Promise.all(files.map(readFileAysnc)).then((data) => {
             setQuestions(data);
-            setQuestionNumber(data[0].fileName);
         })
     }
 
