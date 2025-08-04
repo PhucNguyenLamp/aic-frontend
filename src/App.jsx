@@ -1,17 +1,14 @@
 import './App.css'
-import { useEffect, useState, useRef } from 'react'
+import { useContext } from 'react'
 import Home from '@/pages/Home'
 import { searchKeyframes, syncHistory } from '@/api/services/query';
 import * as Blockly from 'blockly';
+import { AppContext } from './context/AppContext';
 
 function App() {
-  const [historyPage, setHistoryPage] = useState(false);
-  const [images, setImages] = useState([]);
-  const [history, setHistory] = useState([]);
-  const workspaceRef = useRef(null);
-  
+  const { setImages, workspaceRef } = useContext(AppContext);
+
   const loadHistory = (data) => {
-    setHistoryPage(false);
     const workspace = workspaceRef.current;
     if (workspace && data.workspace) {
       loadFormattedData(data.workspace, workspace);
@@ -32,8 +29,6 @@ function App() {
     <div className="relative w-screen h-screen">
           <Home
             sendData={sendQuery}
-            images={images}
-            workspaceRef={workspaceRef}
             loadHistory={loadHistory}
           />
     </div>

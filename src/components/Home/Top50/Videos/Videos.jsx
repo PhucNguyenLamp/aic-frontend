@@ -1,5 +1,6 @@
 import { useState } from "react"
-import { imagePath, videoPath } from "../utils/imagePath";
+import VideoModal from "./VideoModal";
+import { imagePath, videoPath } from "@/utils/imagePath";
 import { Card } from "@mui/material";
 
 export default function Videos({ videos, handleOpen }) {

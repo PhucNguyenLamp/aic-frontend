@@ -1,30 +1,44 @@
-import { useState, useEffect, useRef } from "react";
-import { Button, Card, Fab, MenuItem, Select, Slider, Typography } from "@mui/material";
-import { imagePath } from "../utils/imagePath";
+import { useState, useEffect, useRef, useContext } from "react";
+import { Box, Button, Card, Fab, FormControl, InputLabel, MenuItem, Select, Slider, Typography } from "@mui/material";
+import { imagePath } from "@/utils/imagePath";
 import clsx from "clsx";
 import Selecto from "react-selecto";
-
-export default function Keyframes({ undoRef, redoRef, sortedImages, setSortedImages, handleOpen }) {
+import QuestionsReader from "./QuestionsReader";
+import { AppContext } from "@/context/AppContext";
+import * as Blockly from "blockly";
+export default function Keyframes({ handleOpen }) {
     const [sortOption, setSortOption] = useState("d");
+    const { questionNumber, setQuestionNumber, questions, undoRef, redoRef, images, setImages, workspaceRef } = useContext(AppContext);
+
+    function changeWorkSpace(e) {
+        // save Workspace
+        questions[questionNumber].workspace.images = images;
+        questions[questionNumber].workspace.history.undoRef = undoRef.current;
+        questions[questionNumber].workspace.history.redoRef = redoRef.current;
+        questions[questionNumber].workspace.queries = Blockly.serialization.workspaces.save(workspaceRef.current);
+        // change currentQuestion
+        setQuestionNumber(e.target.value)
+    }
+
     const selectoRef = useRef(null);
     const undo = () => {
         if (undoRef.current.length > 0) {
             const lastState = undoRef.current.pop();
-            redoRef.current.push(sortedImages);
-            setSortedImages(lastState);
+            redoRef.current.push(images);
+            setImages(lastState);
         }
     }
 
     const redo = () => {
         if (redoRef.current.length > 0) {
             const lastState = redoRef.current.pop();
-            undoRef.current.push(sortedImages);
-            setSortedImages(lastState);
+            undoRef.current.push(images);
+            setImages(lastState);
         }
     }
 
     useEffect(() => {
-        const newSortedImages = [...sortedImages].sort((a, b) => {
+        const newSortedImages = [...images].sort((a, b) => {
             if (sortOption === "g") {
                 return a.group_id - b.group_id || a.video_id - b.video_id || a.key - b.key;
             } else if (sortOption === "hc") {
@@ -32,7 +46,7 @@ export default function Keyframes({ undoRef, redoRef, sortedImages, setSortedIma
             } else
                 return 0;
         });
-        setSortedImages(newSortedImages);
+        setImages(newSortedImages);
     }, [sortOption])
 
     useEffect(() => {
@@ -43,9 +57,9 @@ export default function Keyframes({ undoRef, redoRef, sortedImages, setSortedIma
                 const selectedKeys = Array.from(selectedElements).map((el) => {
                     return el.getAttribute("data-key");
                 });
-                const newSortedImages = sortedImages.filter(image => !selectedKeys.includes(`${image.key}-${image.video_id}-${image.group_id}`));
-                setSortedImages(newSortedImages);
-                undoRef.current.push(sortedImages);
+                const newSortedImages = images.filter(image => !selectedKeys.includes(`${image.key}-${image.video_id}-${image.group_id}`));
+                setImages(newSortedImages);
+                undoRef.current.push(images);
                 redoRef.current = [];
             }
             // control + a, select all
@@ -91,7 +105,7 @@ export default function Keyframes({ undoRef, redoRef, sortedImages, setSortedIma
             if (!targetKey) return;
 
             // Find the index of the drop target
-            const dropIndex = sortedImages.findIndex(img =>
+            const dropIndex = images.findIndex(img =>
                 `${img.key}-${img.video_id}-${img.group_id}` === targetKey
             );
 
@@ -103,12 +117,12 @@ export default function Keyframes({ undoRef, redoRef, sortedImages, setSortedIma
             );
 
             // Filter out selected images from original array
-            const remainingImages = sortedImages.filter(img =>
+            const remainingImages = images.filter(img =>
                 !selectedKeys.includes(`${img.key}-${img.video_id}-${img.group_id}`)
             );
 
             // Extract selected image objects
-            const selectedImagesData = sortedImages.filter(img =>
+            const selectedImagesData = images.filter(img =>
                 selectedKeys.includes(`${img.key}-${img.video_id}-${img.group_id}`)
             );
 
@@ -119,8 +133,8 @@ export default function Keyframes({ undoRef, redoRef, sortedImages, setSortedIma
                 ...remainingImages.slice(dropIndex),
             ];
 
-            setSortedImages(newImages);
-            undoRef.current.push(sortedImages);
+            setImages(newImages);
+            undoRef.current.push(images);
             redoRef.current = [];
             setSortOption("d");
         }
@@ -146,7 +160,7 @@ export default function Keyframes({ undoRef, redoRef, sortedImages, setSortedIma
             document.removeEventListener("mouseup", handleDragUp);
             document.removeEventListener("mousedown", handleRightClick);
         };
-    }, [sortedImages]);
+    }, [images]);
 
     return (
         <div className="relative elements overflow-y-scroll w-full container">
@@ -171,7 +185,7 @@ export default function Keyframes({ undoRef, redoRef, sortedImages, setSortedIma
                 toggleContinueSelectWithoutDeselect={[["ctrl"], ["meta"]]}
                 ratio={0}
             ></Selecto>
-            <div className="sticky">
+            <Box className="sticky flex items-center">
                 <Button className="h-[56px]" disabled={undoRef.current.length === 0} onClick={undo}>↩️</Button>
                 <Button className="h-[56px]" disabled={redoRef.current.length === 0} onClick={redo}>↪️</Button>
                 <Select
@@ -183,9 +197,28 @@ export default function Keyframes({ undoRef, redoRef, sortedImages, setSortedIma
                     <MenuItem value="g">Group</MenuItem>
                     <MenuItem value="hc">High Confidence</MenuItem>
                 </Select>
-            </div>
+                <FormControl className="max-w-[130px]" fullWidth>
+                    <InputLabel id="question-select-label">{questions.length === 0 ? "No Question" : `Question ${questionNumber}`}</InputLabel>
+                    <Select
+                        labelId="question-select-label"
+                        value={questionNumber}
+                        label="Questions"
+                        disabled={questions.length === 0}
+                        onChange={e => setQuestionNumber(e.target.value)}
+                    >
+                        {
+                            questions.map((q, index) => (
+                                <MenuItem key={q.fileName} value={index} onClick={changeWorkSpace}>
+                                    Question {q.fileName}
+                                </MenuItem>
+                            ))
+                        }
+                    </Select>
+                </FormControl>
+                <QuestionsReader />
+            </Box>
             <div className="grid grid-cols-5 gap-4 p-4" id="selecto">
-                {sortedImages?.map((image, index) => (
+                {images?.map((image, index) => (
                     <figure className="relative image p-2 hover:bg-[rgba(68,171,255,0.15)] [&_*]:select-none [&_*]:pointer-events-none"
                         key={`${image.key}-${image.video_id}-${image.group_id}`}
                         data-key={`${image.key}-${image.video_id}-${image.group_id}`}
@@ -206,3 +239,4 @@ export default function Keyframes({ undoRef, redoRef, sortedImages, setSortedIma
         </div>
     )
 }
+
