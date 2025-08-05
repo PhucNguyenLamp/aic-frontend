@@ -1,11 +1,12 @@
 // QueryBuilder.jsx
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useContext, memo } from 'react';
 import { BlocklyWorkspace } from 'react-blockly';
 import './customBlocks';
-import * as Blockly from 'blockly';
+import { AppContext } from '@/context/AppContext';
 
-export default function QueryBuilder({ workspaceRef }) {
 
+const QueryBuilder = memo(function QueryBuilder({ workspaceRef }) {
+    const { setSomethingChange } = useContext(AppContext);
     return (
         <div className='flex-1 w-full flex flex-col'>
             <BlocklyWorkspace
@@ -18,14 +19,18 @@ export default function QueryBuilder({ workspaceRef }) {
                     scrollbars: false,
                     trashcan: true
                 }}
-                onWorkspaceChange={(workspace) => {
+                onXmlChange={(workspace) => {
+                    setSomethingChange((prev) => !prev);
+                }}
+                onInject={(workspace) => {
                     workspaceRef.current = workspace;
                 }}
             />
         </div>
     );
-}
+});
 
+export default QueryBuilder;
 const toolbox = {
     kind: 'flyoutToolbox',
     contents: [

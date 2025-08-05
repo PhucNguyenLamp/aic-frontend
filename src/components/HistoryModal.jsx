@@ -8,19 +8,32 @@ import * as Blockly from 'blockly';
 export default function HistoryModal({ loadHistory }) {
     // const [history, setHistory] = useState([]);
     const [open, setOpen] = useState(false);
-    const { questionNumber, setQuestionNumber, questions, undoRef, redoRef, images, workspaceRef } = useContext(AppContext);
+    const { questions, setQuestions, questionNumber, setQuestionNumber, images, setImages, workspaceRef, undoRef, redoRef } = useContext(AppContext);
 
-    function changeWorkSpace(e) {
-        // save Workspace
-        questions[questionNumber].workspace.images = images;
-        questions[questionNumber].workspace.history.undoRef = undoRef.current;
-        questions[questionNumber].workspace.history.redoRef = redoRef.current;
-        questions[questionNumber].workspace.queries = Blockly.serialization.workspaces.save(workspaceRef.current);
+    function changeWorkSpace(idx) {
         // change currentQuestion
-        setQuestionNumber(e.target.value)
+        setQuestionNumber(idx)
         setOpen(false);
     }
 
+    function handleDelete(e, idx) {
+        e.stopPropagation()
+        console.log("delete", idx);
+        console.log("questions", questionNumber);
+        const newQuestions = [...questions];
+        newQuestions.splice(idx, 1);
+        setQuestions(newQuestions);
+        // patch tạm thời, đống bug omg
+        if (idx == questionNumber) {
+            setQuestionNumber(0);
+            setImages(newQuestions[0].workspace.images)
+            undoRef.current = newQuestions[0].workspace.history.undoRef;
+            redoRef.current = newQuestions[0].workspace.history.redoRef;
+            if (workspaceRef.current && newQuestions[0].workspace.queries) {
+                Blockly.serialization.workspaces.load(newQuestions[0].workspace.queries, workspaceRef.current);
+            }
+        }
+    }
 
     // useEffect(() => {
     //     const fetchHistory = async () => {
@@ -54,13 +67,13 @@ export default function HistoryModal({ loadHistory }) {
                         <div className="absolute -top-12 -left-14 text-4xl">📜</div>
                         <div className="relative h-full w-full space-y-4 p-1 overflow-y-auto">
                             {questions.map((q, idx) => (
-                                <Card key={idx} className="w-full p-4 cursor-pointer hover:!bg-gray-100 flex flex-row justify-between" onClick={changeWorkSpace}>
+                                <Card key={idx} className="w-full p-4 cursor-pointer hover:!bg-gray-100 flex flex-row justify-between" onClick={() => changeWorkSpace(idx)}>
                                     <Box>
                                         <h3>Question {q.fileName}</h3>
                                         <p>Workspace: {q.workspace ? "✔️" : "❌"}</p>
                                         <p>Images: {q.workspace.images.length}</p>
                                     </Box>
-                                    <Button onClick={(e) => {e.stopPropagation()} }> Delete </Button>
+                                    <Button onClick={(e) => { handleDelete(e, idx) }}> Delete </Button>
                                 </Card>
                             ))}
                         </div>

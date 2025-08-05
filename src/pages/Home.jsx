@@ -3,11 +3,30 @@ import Queries from '@/components/Home/Queries/Queries';
 import { Fab } from '@mui/material'
 import SplitPane from 'react-split-pane';
 import * as Blockly from 'blockly';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo, useContext } from 'react';
 import HistoryModal from '@/components/HistoryModal';
+import { AppContext } from '@/context/AppContext';
 
-export default function Home({ sendData, loadHistory }) {
+export default memo(function Home({ sendData, loadHistory }) {
     const [historyModalOpen, setHistoryModalOpen] = useState(false);
+    const { questions } = useContext(AppContext);
+    const exportQuestions = () => {
+
+        const data = questions.map(q => ({
+            fileName: q.fileName,
+            images: q.workspace.images
+        }));
+        // split into to data.length parts
+        data.map((item) => {
+            const blob = new Blob([JSON.stringify(item, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${item.fileName}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        })
+    }
 
     return (
         <>
@@ -28,17 +47,10 @@ export default function Home({ sendData, loadHistory }) {
             <Fab
                 color="primary"
                 className="!absolute bottom-4 right-4 z-50"
-                onClick={() => {
-                    const selectedElements = document.querySelectorAll("#selecto .image.selected");
-                    const selectedKeys = Array.from(selectedElements).map((el) => {
-                        const caption = el.querySelector("span")?.textContent;
-                        return caption;
-                    });
-                    console.log("Selected image keys:", selectedKeys);
-                }}
+                onClick={exportQuestions}
             >
                 ➜
             </Fab>
         </>
     )
-}
+});

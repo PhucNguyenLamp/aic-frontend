@@ -5,76 +5,80 @@ import * as Blockly from "blockly";
 const AppContext = createContext();
 
 const AppProvider = ({ children }) => {
-    const [questions, setQuestions] = useState([]);
-    const [questionNumber, setQuestionNumber] = useState("");
+    const savedQuestions = localStorage.getItem('workspace');
+    const [questions, setQuestions] = useState(savedQuestions ? JSON.parse(savedQuestions) : []);;
+    const [questionNumber, setQuestionNumber] = useState(0);
     const [images, setImages] = useState([]);
     const undoRef = useRef([]);
     const redoRef = useRef([]);
     const workspaceRef = useRef(null);
-    const questionsRef = useRef(questions);
+    const [somethingChange, setSomethingChange] = useState(false);
 
     useEffect(() => {
-        const savedQuestions = localStorage.getItem('workspace');
-        console.log(savedQuestions)
-        if (savedQuestions) {
-            setQuestions(JSON.parse(savedQuestions));
+        console.log("question changed");
+        if (!questions.length) return;
+
+        setImages(questions[questionNumber].workspace.images)
+        undoRef.current = questions[questionNumber].workspace.history.undoRef;
+        redoRef.current = questions[questionNumber].workspace.history.redoRef;
+        if (workspaceRef.current && questions[questionNumber].workspace.queries) {
+            Blockly.serialization.workspaces.load(questions[questionNumber].workspace.queries, workspaceRef.current);
         }
-    }, [])
+    }, [questionNumber])
+
 
     useEffect(() => {
-        console.log(questions)
-        if (questions.length > 0) {
-            if (questionNumber === "") {
-                setQuestionNumber(0);
-            } else {
-                setImages(questions[questionNumber].workspace.images)
-                undoRef.current = questions[questionNumber].workspace.history.undoRef;
-                redoRef.current = questions[questionNumber].workspace.history.redoRef;
-                if (workspaceRef.current && questions[questionNumber].workspace.queries) {
-                    Blockly.serialization.workspaces.load(questions[questionNumber].workspace.queries, workspaceRef.current);
-                }
+        const updatedQuestion = {
+            ...questions[questionNumber],
+            workspace: {
+                images: images,
+                history: {
+                    undoRef: undoRef.current,
+                    redoRef: redoRef.current,
+                },
+                queries: workspaceRef.current ? Blockly.serialization.workspaces.save(workspaceRef.current) : {},
             }
-        }
-    }, [questionNumber, questions])
+        };
 
-    const saveWorkspace = useCallback((workspace) => {
-        console.log("Saving workspace...");
+        const updatedQuestions = [...questions];
+        updatedQuestions[questionNumber] = updatedQuestion;
+        setQuestions(updatedQuestions);
+        saveWorkspace(updatedQuestions);
+    }, [images, somethingChange]);
+
+    const saveWorkspace = (q) => {
         // call api 
 
         // save to local storage
-        console.log(questions)
-        localStorage.setItem('workspace', JSON.stringify(workspace));
-    }, []);
+        console.log("saving", q);
+        localStorage.setItem('workspace', JSON.stringify(q));
+    }
 
-    useEffect(() => {
-        // auto save
-        const intervalId = setInterval(() => {
-            saveWorkspace(questionsRef.current);
-            console.log("Workspace auto-saved.");
-        }, 60000);
-        return () => clearInterval(intervalId);
-    }, [])
+    // useEffect(() => {
+    //     // auto save
+    //     const intervalId = setInterval(() => {
+    //         saveWorkspace();
+    //     }, 60000);
+    //     return () => clearInterval(intervalId);
+    // }, [questions])
 
-    useEffect(() => {
-        // ctrl + s save
-        const handleKeyDown = (e) => {
-            if (e.ctrlKey && e.key === 's') {
-                e.preventDefault();
-                saveWorkspace(questionsRef.current);
-            }
-        }
-        window.addEventListener('keydown', handleKeyDown);
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-        }
-    }, [])
+    // useEffect(() => {
+    //     // ctrl + s save
+    //     const handleKeyDown = (e) => {
+    //         if (e.ctrlKey && e.key === 's') {
+    //             e.preventDefault();
+    //             saveWorkspace();
+    //         }
+    //     }
+    //     window.addEventListener('keydown', handleKeyDown);
+    //     return () => {
+    //         window.removeEventListener('keydown', handleKeyDown);
+    //     }
+    // }, [questions])
 
-    useEffect(() => {
-        questionsRef.current = questions;
-    }, [questions]);
 
     return (
-        <AppContext value={{ questions, setQuestions, questionNumber, setQuestionNumber, images, setImages, undoRef, redoRef, workspaceRef }}>
+        <AppContext value={{ questions, setQuestions, questionNumber, setQuestionNumber, images, setImages, undoRef, redoRef, workspaceRef, somethingChange, setSomethingChange }}>
             {children}
         </AppContext>
     )

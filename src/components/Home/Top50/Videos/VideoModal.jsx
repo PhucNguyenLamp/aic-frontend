@@ -7,7 +7,7 @@ import { videoPath } from '@/utils/imagePath';
 import { AppContext } from '@/context/AppContext';
 
 export default function VideoModal({ image, open, onClose, images, setSortedImages }) {
-    const { undoRef, redoRef } = useContext(AppContext)
+    const { undoRef, redoRef, setSomethingChanged } = useContext(AppContext)
     const playerRef = React.useRef(null);
     const intervalRef = React.useRef(null);
     const timeoutRef = React.useRef(null);

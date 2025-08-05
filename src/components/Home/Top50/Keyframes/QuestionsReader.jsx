@@ -1,9 +1,10 @@
 import Dropzone from "react-dropzone";
 import { useContext } from "react";
 import { AppContext } from "@/context/AppContext";
+import * as Blockly from 'blockly';
 
 export default function QuestionsReader() {
-    const { setQuestions } = useContext(AppContext);
+    const { setQuestions, setImages, undoRef, redoRef, workspaceRef } = useContext(AppContext);
     const readFileAysnc = async (file) => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -29,6 +30,11 @@ export default function QuestionsReader() {
     const readFiles = (files) => {
         Promise.all(files.map(readFileAysnc)).then((data) => {
             setQuestions(data);
+            localStorage.setItem('workspace', JSON.stringify(data));
+            setImages([])
+            undoRef.current = [];
+            redoRef.current = [];
+            Blockly.serialization.workspaces.load({}, workspaceRef.current);
         })
     }
 

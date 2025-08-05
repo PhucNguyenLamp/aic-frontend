@@ -1,5 +1,5 @@
 import './App.css'
-import { useContext } from 'react'
+import { useCallback, useContext } from 'react'
 import Home from '@/pages/Home'
 import { searchKeyframes, syncHistory } from '@/api/services/query';
 import * as Blockly from 'blockly';
@@ -16,12 +16,12 @@ function App() {
     setImages(data.images || []);
   };
 
-  const sendQuery = async (formattedQuery) => {
+  const sendQuery = useCallback(async (formattedQuery) => {
     const result = await searchKeyframes(formattedQuery);
     const savedWorkspace = Blockly.serialization.workspaces.save(workspaceRef.current);
     await syncHistory(savedWorkspace);
     setImages(result);
-  };
+  }, [workspaceRef, setImages]);
 
   
 

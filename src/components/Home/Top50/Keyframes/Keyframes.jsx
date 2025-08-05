@@ -6,16 +6,12 @@ import Selecto from "react-selecto";
 import QuestionsReader from "./QuestionsReader";
 import { AppContext } from "@/context/AppContext";
 import * as Blockly from "blockly";
+
 export default function Keyframes({ handleOpen }) {
     const [sortOption, setSortOption] = useState("d");
     const { questionNumber, setQuestionNumber, questions, undoRef, redoRef, images, setImages, workspaceRef } = useContext(AppContext);
 
     function changeWorkSpace(e) {
-        // save Workspace
-        questions[questionNumber].workspace.images = images;
-        questions[questionNumber].workspace.history.undoRef = undoRef.current;
-        questions[questionNumber].workspace.history.redoRef = redoRef.current;
-        questions[questionNumber].workspace.queries = Blockly.serialization.workspaces.save(workspaceRef.current);
         // change currentQuestion
         setQuestionNumber(e.target.value)
     }
@@ -198,18 +194,16 @@ export default function Keyframes({ handleOpen }) {
                     <MenuItem value="hc">High Confidence</MenuItem>
                 </Select>
                 <FormControl className="max-w-[130px]" fullWidth>
-                    <InputLabel id="question-select-label">{questions.length === 0 ? "No Question" : `Question ${questionNumber}`}</InputLabel>
                     <Select
                         labelId="question-select-label"
                         value={questionNumber}
-                        label="Questions"
                         disabled={questions.length === 0}
                         onChange={e => setQuestionNumber(e.target.value)}
                     >
                         {
                             questions.map((q, index) => (
                                 <MenuItem key={q.fileName} value={index} onClick={changeWorkSpace}>
-                                    Question {q.fileName}
+                                    {q.fileName}
                                 </MenuItem>
                             ))
                         }

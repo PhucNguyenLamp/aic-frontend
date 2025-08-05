@@ -1,13 +1,12 @@
 // Queries.jsx
 import { Button } from '@mui/material'
 import QueryBuilder from './QueryBuilder.jsx'
-import { useContext, useRef } from 'react';
 import * as Blockly from 'blockly';
+import { memo, useContext } from 'react';
 import { AppContext } from '@/context/AppContext.jsx';
 
-export default function Queries({ sendData }) {
+const Queries = memo(function Queries({ sendData }) {
     const { workspaceRef } = useContext(AppContext);
-    
 
     const handleSubmit = () => {
         const wsJson = Blockly.serialization.workspaces.save(workspaceRef.current);
@@ -22,7 +21,9 @@ export default function Queries({ sendData }) {
             <Button variant="contained" onClick={handleSubmit}>Submit</Button>
         </div>
     );
-}
+});
+
+export default Queries;
 
 const formatFn = (workspaceJson) => {
     const walk = (block) => {
