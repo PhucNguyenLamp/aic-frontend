@@ -69,9 +69,9 @@ export default function HistoryModal({ loadHistory }) {
                             {questions.map((q, idx) => (
                                 <Card key={idx} className="w-full p-4 cursor-pointer hover:!bg-gray-100 flex flex-row justify-between" onClick={() => changeWorkSpace(idx)}>
                                     <Box>
-                                        <h3>Question {q.fileName}</h3>
-                                        <p>Workspace: {q.workspace ? "✔️" : "❌"}</p>
-                                        <p>Images: {q.workspace.images.length}</p>
+                                        <h3>Question {q?.fileName}</h3>
+                                        <p>Workspace: {q?.workspace ? "✔️" : "❌"}</p>
+                                        <p>Images: {q?.workspace?.images.length}</p>
                                     </Box>
                                     <Button onClick={(e) => { handleDelete(e, idx) }}> Delete </Button>
                                 </Card>

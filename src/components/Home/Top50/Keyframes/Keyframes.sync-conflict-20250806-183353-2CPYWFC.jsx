@@ -202,8 +202,8 @@ export default function Keyframes({ handleOpen }) {
                     >
                         {
                             questions.map((q, index) => (
-                                <MenuItem key={q?.fileName} value={index} onClick={changeWorkSpace}>
-                                    {q?.fileName}
+                                <MenuItem key={q.fileName} value={index} onClick={changeWorkSpace}>
+                                    {q.fileName}
                                 </MenuItem>
                             ))
                         }
@@ -219,9 +219,7 @@ export default function Keyframes({ handleOpen }) {
                         onDoubleClick={() => handleOpen(image)}
                     >
                         <img src={image.blobUrl || imagePath(image.key, image.video_id, image.group_id)}
-                            onError={(e) => {
-                                e.target.src = ""
-                            }}
+                            className=""
                         />
                         <figcaption className="flex flex-row justify-between ">
                             <Typography variant="caption" className=" text-center text-black bg-opacity-50 p-1 rounded">
