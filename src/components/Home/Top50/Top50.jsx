@@ -3,10 +3,10 @@ import VideoModal from "./Videos/VideoModal";
 import Videos from "./Videos/Videos";
 import SplitPane from "react-split-pane";
 import Keyframes from "./Keyframes/Keyframes";
-import { AppContext } from "@/context/AppContext";
+import { useStore } from "zustand";
 
 export default function Top50() {
-    const { images: sortedImages, setImages: setSortedImages } = useContext(AppContext);
+
     const [isOpenModal, setIsOpenModal] = useState(false);
     const [modalImage, setModalImage] = useState(null);
 
@@ -15,9 +15,9 @@ export default function Top50() {
         setIsOpenModal(true);
     };
 
-    useEffect(() => {
-        setSortedImages(sortedImages);
-    }, [sortedImages]);
+    // useEffect(() => {
+    //     setSortedImages(sortedImages);
+    // }, [sortedImages]);
 
     useEffect(() => {
         const disableContextMenu = (e) => {
@@ -45,12 +45,14 @@ export default function Top50() {
                     borderBottom: '1px solid #d1d5db'
                 }}
             >
-                <Keyframes sortedImages={sortedImages} setSortedImages={setSortedImages} handleOpen={handleOpen} />
+                <Keyframes
+                    handleOpen={handleOpen} />
                 <Videos handleOpen={handleOpen} />
             </SplitPane>
             <VideoModal
-                images={sortedImages} image={modalImage} open={isOpenModal}
-                onClose={() => setIsOpenModal(false)} setSortedImages={setSortedImages}
+                image={modalImage}
+                open={isOpenModal}
+                onClose={() => setIsOpenModal(false)}
             />
         </div>
 

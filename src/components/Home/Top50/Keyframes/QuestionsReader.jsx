@@ -1,24 +1,30 @@
 import Dropzone from "react-dropzone";
-import { useContext } from "react";
-import { AppContext } from "@/context/AppContext";
-import * as Blockly from 'blockly';
+import { useStore } from "@/stores/questions";
 
 export default function QuestionsReader() {
-    const { setQuestions, setImages, undoRef, redoRef, workspaceRef } = useContext(AppContext);
+    // const { setQuestions, setImages, undoRef, redoRef, workspaceRef } = useContext(AppContext);
+    const { addQuestions, questions, getId } = useStore();
+
     const readFileAysnc = async (file) => {
+
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = (event) => {
                 const content = event.target.result;
                 const data = {
-                    fileName: file.name, content: content,
-                    workspace: {
-                        queries: {},
+                    [file.name]: {
+                        question: content,
                         images: [],
-                        history: {
-                            undoRef: [],
-                            redoRef: []
-                        }
+                        nodes: [{
+                            id: getId(),
+                            position: { x: 0, y: 0 },
+                            type: 'text',
+                            data: { text: content },
+                            origin: [0.5, 0.0],
+                        }],
+                        edges: [],
+                        undoArray: [],
+                        redoArray: []
                     }
                 };
                 resolve(data);
@@ -29,12 +35,8 @@ export default function QuestionsReader() {
 
     const readFiles = (files) => {
         Promise.all(files.map(readFileAysnc)).then((data) => {
-            setQuestions(data);
-            localStorage.setItem('workspace', JSON.stringify(data));
-            setImages([])
-            undoRef.current = [];
-            redoRef.current = [];
-            Blockly.serialization.workspaces.load({}, workspaceRef.current);
+            data = Object.assign({}, ...data);
+            addQuestions(data);
         })
     }
 

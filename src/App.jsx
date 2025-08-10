@@ -2,26 +2,23 @@ import './App.css'
 import { useCallback, useContext } from 'react'
 import Home from '@/pages/Home'
 import { searchKeyframes, syncHistory } from '@/api/services/query';
-import * as Blockly from 'blockly';
-import { AppContext } from './context/AppContext';
+import { useStore } from './stores/questions';
 
 function App() {
-  const { setImages, workspaceRef } = useContext(AppContext);
 
+  const { updateQuestionField, currentQuestionId, questions } = useStore();
   const loadHistory = (data) => {
-    const workspace = workspaceRef.current;
-    if (workspace && data.workspace) {
-      loadFormattedData(data.workspace, workspace);
-    }
-    setImages(data.images || []);
+    // const workspace = workspaceRef.current;
+    // if (workspace && data.workspace) {
+    //   loadFormattedData(data.workspace, workspace);
+    // }
+    // setImages(data.images || []);
   };
 
-  const sendQuery = useCallback(async (formattedQuery) => {
-    const result = await searchKeyframes(formattedQuery);
-    const savedWorkspace = Blockly.serialization.workspaces.save(workspaceRef.current);
-    await syncHistory(savedWorkspace);
-    setImages(result);
-  }, [workspaceRef, setImages]);
+  const sendQuery = useCallback(async (query) => {
+    const result = await searchKeyframes(query);
+    updateQuestionField('images', result);
+  }, []);
 
   
 
@@ -36,9 +33,3 @@ function App() {
 }
 
 export default App
-
-export function loadFormattedData(data, workspace) {
-  console.log(data)
-  console.log(workspace)
-  Blockly.serialization.workspaces.load(data, workspace);
-}

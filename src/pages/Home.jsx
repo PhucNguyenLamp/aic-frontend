@@ -2,19 +2,18 @@ import Top50 from '@/components/Home/Top50/Top50'
 import Queries from '@/components/Home/Queries/Queries';
 import { Fab } from '@mui/material'
 import SplitPane from 'react-split-pane';
-import * as Blockly from 'blockly';
 import { useState, useEffect, memo, useContext } from 'react';
 import HistoryModal from '@/components/HistoryModal';
-import { AppContext } from '@/context/AppContext';
+import { useStore } from '@/stores/questions';
 
 export default memo(function Home({ sendData, loadHistory }) {
     const [historyModalOpen, setHistoryModalOpen] = useState(false);
-    const { questions } = useContext(AppContext);
+    const { questions } = useStore();
     const exportQuestions = () => {
 
-        const data = questions.map(q => ({
-            fileName: q.fileName,
-            images: q.workspace.images
+        const data = Object.entries(questions).map(([key, q]) => ({
+            fileName: key,
+            images: q.images,
         }));
         // split into to data.length parts
         data.map((item) => {
@@ -30,12 +29,10 @@ export default memo(function Home({ sendData, loadHistory }) {
 
     return (
         <>
-            <SplitPane split="vertical" defaultSize={400} onChange={() => {
-                const ws = Blockly.getMainWorkspace();
-                if (ws) setTimeout(() => Blockly.svgResize(ws), 100);
-            }} paneStyle={{ overflow: "auto" }} resizerStyle={{
-                background: '#e5e7eb', width: '4px', cursor: 'col-resize', borderLeft: '1px solid #d1d5db', borderRight: '1px solid #d1d5db'
-            }}
+            <SplitPane split="vertical" defaultSize={700}
+                paneStyle={{ overflow: "auto" }} resizerStyle={{
+                    background: '#e5e7eb', width: '4px', cursor: 'col-resize', borderLeft: '1px solid #d1d5db', borderRight: '1px solid #d1d5db'
+                }}
             >
                 <Queries sendData={sendData} />
                 <Top50 />

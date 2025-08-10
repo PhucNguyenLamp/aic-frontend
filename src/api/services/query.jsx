@@ -127,6 +127,5 @@ export const getHistory = async () => {
 export const syncHistory = async (history) => {
     // This function would typically send the updated history to the server
     // For now, we just log it to the console
-    console.log("Syncing history:", history);
     return Promise.resolve(history);
 };

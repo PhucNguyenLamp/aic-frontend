@@ -4,10 +4,16 @@ import Modal from '@mui/material/Modal';
 import VideoJS from './VideoJS';
 import React, { useContext } from 'react';
 import { videoPath } from '@/utils/imagePath';
-import { AppContext } from '@/context/AppContext';
+import { useStore } from '@/stores/questions';
 
-export default function VideoModal({ image, open, onClose, images, setSortedImages }) {
-    const { undoRef, redoRef, setSomethingChanged } = useContext(AppContext)
+export default function VideoModal({ image, open, onClose }) {
+    // const { undoRef, redoRef } = useContext(AppContext)
+    const { updateQuestionField, getCurrentQuestion } = useStore();
+
+    const images = getCurrentQuestion().images;
+    const undoArray = getCurrentQuestion().undoArray;
+    const redoArray = getCurrentQuestion().redoArray;
+
     const playerRef = React.useRef(null);
     const intervalRef = React.useRef(null);
     const timeoutRef = React.useRef(null);
@@ -15,7 +21,7 @@ export default function VideoModal({ image, open, onClose, images, setSortedImag
     const frameDuration = 1 / fps;
 
     const allTimeStamps = images?.map(img => img.video_id == image?.video_id && img.group_id == image?.group_id ? img.key : null).filter(Boolean);
-    const markers = allTimeStamps.map((key) => ({
+    const markers = allTimeStamps?.map((key) => ({
         time: key * frameDuration,
         text: `Frame ${key}`,
     }));
@@ -111,9 +117,13 @@ export default function VideoModal({ image, open, onClose, images, setSortedImag
                 confidence: 1.0, // because we picked this frame
             };
 
-            setSortedImages(prev => [...prev, newImage]);
-            undoRef.current.push(images);
-            redoRef.current = [];
+
+            // setSortedImages(prev => [...prev, newImage]);
+            updateQuestionField('images', [...images, newImage]);
+            // undoRef.current.push(images);
+            updateQuestionField('undoArray', [...undoArray, images])
+            // redoRef.current = [];
+            updateQuestionField('redoArray', [])
             onClose();
         }, "image/webp", 0.9);
 

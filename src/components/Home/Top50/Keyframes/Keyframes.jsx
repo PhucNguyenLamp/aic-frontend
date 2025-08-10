@@ -1,35 +1,40 @@
 import { useState, useEffect, useRef, useContext } from "react";
-import { Box, Button, Card, Fab, FormControl, InputLabel, MenuItem, Select, Slider, Typography } from "@mui/material";
+import { Box, Button, Card, Fab, FormControl, InputLabel, Menu, MenuItem, Select, Slider, Typography } from "@mui/material";
 import { imagePath } from "@/utils/imagePath";
 import clsx from "clsx";
 import Selecto from "react-selecto";
 import QuestionsReader from "./QuestionsReader";
-import { AppContext } from "@/context/AppContext";
-import * as Blockly from "blockly";
+import { useStore } from "@/stores/questions";
 
 export default function Keyframes({ handleOpen }) {
     const [sortOption, setSortOption] = useState("d");
-    const { questionNumber, setQuestionNumber, questions, undoRef, redoRef, images, setImages, workspaceRef } = useContext(AppContext);
+    // const { questionNumber, setCurrentQuestion, questions, undoRef, redoRef, images, setImages, workspaceRef } = useContext(AppContext);
+    const { getCurrentQuestion, setCurrentQuestion, updateQuestionField, questions, currentQuestionId } = useStore();
+    const currentQuestion = getCurrentQuestion();
+    const images = [...currentQuestion.images];
+    const undoArray = [...currentQuestion.undoArray];
+    const redoArray = [...currentQuestion.redoArray];
 
+    const ref = useRef(null);
     function changeWorkSpace(e) {
         // change currentQuestion
-        setQuestionNumber(e.target.value)
+        setCurrentQuestion(e.target.value)
     }
 
     const selectoRef = useRef(null);
     const undo = () => {
-        if (undoRef.current.length > 0) {
-            const lastState = undoRef.current.pop();
-            redoRef.current.push(images);
-            setImages(lastState);
+        if (undoArray.length > 0) {
+            const lastState = undoArray.pop(); updateQuestionField('undoArray', [...undoArray]);
+            updateQuestionField('redoArray', [...redoArray, images]);
+            updateQuestionField('images', lastState);
         }
     }
 
     const redo = () => {
-        if (redoRef.current.length > 0) {
-            const lastState = redoRef.current.pop();
-            undoRef.current.push(images);
-            setImages(lastState);
+        if (redoArray.length > 0) {
+            const lastState = redoArray.pop(); updateQuestionField('redoArray', [...redoArray]);
+            updateQuestionField('undoArray', [...undoArray, images]);
+            updateQuestionField('images', lastState);
         }
     }
 
@@ -42,11 +47,14 @@ export default function Keyframes({ handleOpen }) {
             } else
                 return 0;
         });
-        setImages(newSortedImages);
+        updateQuestionField('images', newSortedImages);
     }, [sortOption])
 
     useEffect(() => {
         const handleKeyDown = (e) => {
+            const isFocusedInside = ref.current && (ref.current === document.activeElement || ref.current.contains(document.activeElement));
+            if (!isFocusedInside) return;
+
             if (e.keyCode == 46) {
                 const selectedElements = document.querySelectorAll("#selecto .image.selected");
                 // delete selected elements by sorting them by key
@@ -54,9 +62,9 @@ export default function Keyframes({ handleOpen }) {
                     return el.getAttribute("data-key");
                 });
                 const newSortedImages = images.filter(image => !selectedKeys.includes(`${image.key}-${image.video_id}-${image.group_id}`));
-                setImages(newSortedImages);
-                undoRef.current.push(images);
-                redoRef.current = [];
+                updateQuestionField('images', newSortedImages);
+                updateQuestionField('undoArray', [...undoArray, images]);
+                updateQuestionField('redoArray', []);
             }
             // control + a, select all
             if (e.ctrlKey && e.key.toLowerCase() === "a") {
@@ -90,11 +98,11 @@ export default function Keyframes({ handleOpen }) {
 
         // document.addEventListener("keydown", handleDragDown);
         const handleDragUp = (e) => {
+            if (ref.current && !ref.current.contains(e.target)) return;
             if (e.button !== 2) return; // Right-click only
 
             const selectedElements = document.querySelectorAll("#selecto .image.selected");
             const currentElementMouseOn = document.elementFromPoint(e.clientX, e.clientY);
-            console.log(currentElementMouseOn)
             if (!currentElementMouseOn) return;
 
             const targetKey = currentElementMouseOn.getAttribute("data-key");
@@ -129,15 +137,16 @@ export default function Keyframes({ handleOpen }) {
                 ...remainingImages.slice(dropIndex),
             ];
 
-            setImages(newImages);
-            undoRef.current.push(images);
-            redoRef.current = [];
+            updateQuestionField('images', newImages);
+            updateQuestionField('undoArray', [...undoArray, images]);
+            updateQuestionField('redoArray', []);
             setSortOption("d");
         }
 
         document.addEventListener("mouseup", handleDragUp);
 
         const handleRightClick = (e) => {
+            if (ref.current && !ref.current.contains(e.target)) return;
             const selectedElements = document.querySelectorAll("#selecto .image.selected");
             if (selectedElements.length > 0) return;
 
@@ -156,10 +165,10 @@ export default function Keyframes({ handleOpen }) {
             document.removeEventListener("mouseup", handleDragUp);
             document.removeEventListener("mousedown", handleRightClick);
         };
-    }, [images]);
+    }, [images, undoArray, redoArray]);
 
     return (
-        <div className="relative elements overflow-y-scroll w-full container">
+        <div className="relative elements overflow-y-scroll w-full container" ref={ref} tabIndex={0}>
             <Selecto
                 ref={selectoRef}
                 dragContainer={".container"}
@@ -182,8 +191,12 @@ export default function Keyframes({ handleOpen }) {
                 ratio={0}
             ></Selecto>
             <Box className="sticky flex items-center">
-                <Button className="h-[56px]" disabled={undoRef.current.length === 0} onClick={undo}>↩️</Button>
-                <Button className="h-[56px]" disabled={redoRef.current.length === 0} onClick={redo}>↪️</Button>
+                <Button className="h-[56px]"
+                    disabled={undoArray.length === 0}
+                    onClick={undo}>↩️</Button>
+                <Button className="h-[56px]"
+                    disabled={redoArray.length === 0}
+                    onClick={redo}>↪️</Button>
                 <Select
                     value={sortOption}
                     label="Sort By"
@@ -196,14 +209,16 @@ export default function Keyframes({ handleOpen }) {
                 <FormControl className="max-w-[130px]" fullWidth>
                     <Select
                         labelId="question-select-label"
-                        value={questionNumber}
+                        value={currentQuestionId}
                         disabled={questions.length === 0}
-                        onChange={e => setQuestionNumber(e.target.value)}
+                        onChange={e => {
+                            changeWorkSpace(e)
+                        }}
                     >
                         {
-                            questions.map((q, index) => (
-                                <MenuItem key={q?.fileName} value={index} onClick={changeWorkSpace}>
-                                    {q?.fileName}
+                            Object.keys(questions).map((q) => (
+                                <MenuItem key={q} value={q}>
+                                    {q}
                                 </MenuItem>
                             ))
                         }
@@ -219,9 +234,9 @@ export default function Keyframes({ handleOpen }) {
                         onDoubleClick={() => handleOpen(image)}
                     >
                         <img src={image.blobUrl || imagePath(image.key, image.video_id, image.group_id)}
-                            onError={(e) => {
-                                e.target.src = ""
-                            }}
+                        // onError={(e) => {
+                        //     e.target.src = ""
+                        // }}
                         />
                         <figcaption className="flex flex-row justify-between ">
                             <Typography variant="caption" className=" text-center text-black bg-opacity-50 p-1 rounded">

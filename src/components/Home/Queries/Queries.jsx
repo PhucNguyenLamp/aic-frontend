@@ -1,23 +1,26 @@
 // Queries.jsx
 import { Button } from '@mui/material'
 import QueryBuilder from './QueryBuilder.jsx'
-import * as Blockly from 'blockly';
-import { memo, useContext } from 'react';
-import { AppContext } from '@/context/AppContext.jsx';
+import { memo } from 'react';
+import { ReactFlowProvider } from '@xyflow/react';
+import { useStore } from '@/stores/questions.jsx';
 
 const Queries = memo(function Queries({ sendData }) {
-    const { workspaceRef } = useContext(AppContext);
 
+    const { getCurrentQuestion } = useStore();
+    const { nodes, edges } = getCurrentQuestion();
     const handleSubmit = () => {
-        const wsJson = Blockly.serialization.workspaces.save(workspaceRef.current);
-        const formattedData = formatFn(wsJson);
-        console.log("Formatted Data:", formattedData);
-        sendData?.(formattedData);
+        sendData({
+            nodes: nodes,
+            edges: edges,
+        });
     };
 
     return (
         <div className='flex-1 flex flex-col w-full h-full justify-between'>
-            <QueryBuilder workspaceRef={workspaceRef} />
+            <ReactFlowProvider>
+                <QueryBuilder />
+            </ReactFlowProvider>
             <Button variant="contained" onClick={handleSubmit}>Submit</Button>
         </div>
     );
