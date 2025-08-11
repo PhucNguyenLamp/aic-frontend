@@ -1,12 +1,26 @@
-import { memo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { Position, Handle, useReactFlow } from '@xyflow/react';
 function TextNode({ id, data }) {
     const { updateNodeData } = useReactFlow();
+    const validTags = tag_filtering[data.category] || [];
+    const currentSelect = validTags.includes(data.select)
+        ? data.select
+        : validTags[0] ?? '';
+
+    useEffect(() => {
+        if (currentSelect !== data.select) {
+            updateNodeData(id, { select: currentSelect });
+        }
+    }, [data.category]);
+
     return (
         <div>
             <div className='p-4'>node {id}</div>
             <div>
-                <select name="cars" id="cars" className='block mb-2 xy-theme__select' value={data.category} onChange={(e) => updateNodeData(id, { category: e.target.value })}>
+                <select name="cars" id="cars" className='block mb-2 xy-theme__select nodrag' 
+                    value={data.category}
+                    onChange={(e) => updateNodeData(id, { category: e.target.value })}
+                    >
                     <option value="keyframe_tag_filtering">Keyframe Tag</option>
                     <option value="event_tag_filtering">Event Tag</option>
                     <option value="video_embedding">Video Embedding</option>
@@ -20,18 +34,21 @@ function TextNode({ id, data }) {
                     <option value="visual_scene_graph">Visual Scene Graph</option>
                 </select>
 
-                {Object.keys(tag_filtering).includes(data.category) ?
-                    <select className="mb-2 xy-theme__select" value={data.select} onChange={(e) => updateNodeData(id, { select: e.target.value })}>
-                        {
-                            tag_filtering[data.category].map((tag) => (
-                                <option key={tag} value={tag}>{tag}</option>
-                            ))
-                        }
+                {validTags.length > 0 ? (
+                    <select
+                        value={currentSelect}
+                        onChange={(e) => updateNodeData(id, { select: e.target.value })}
+                        className="mb-2 xy-theme__select nodrag"
+                    >
+                        {validTags.map((tag) => (
+                            <option key={tag} value={tag}>{tag}</option>
+                        ))}
                     </select>
+                )
                     :
                     <textarea
-                        onChange={(evt) => updateNodeData(id, { text: evt.target.value })}
                         value={data.text}
+                        onChange={(evt) => updateNodeData(id, { text: evt.target.value })}
                         className="xy-theme__input field-sizing-content max-h-36 max-w-56 nodrag"
                         onWheelCapture={(e => e.stopPropagation())}
                     />}

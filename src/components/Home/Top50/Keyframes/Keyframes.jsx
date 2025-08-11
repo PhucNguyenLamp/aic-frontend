@@ -14,7 +14,7 @@ export default function Keyframes({ handleOpen }) {
     console.log(currentQuestionId);
     console.log(questions)
     const currentQuestion = getCurrentQuestion();
-    const images = [...currentQuestion.images];
+    const images = currentQuestion.images;
     const undoArray = [...currentQuestion.undoArray];
     const redoArray = [...currentQuestion.redoArray];
 

@@ -3,12 +3,15 @@ import React, { useRef, useState, useCallback, useContext, memo, useEffect } fro
 import { ReactFlow, applyNodeChanges, applyEdgeChanges, addEdge, Background, MarkerType, useNodesState, useEdgesState, useReactFlow } from '@xyflow/react';
 import ContextMenu from './ContextMenu';
 import { useDebounce } from 'use-debounce';
-
 import TextNode from './TextNode';
 import { useStore } from '@/stores/questions';
+import ButtonEdge from './ButtonEdge';
 const nodeTypes = {
     text: TextNode,
 }
+const edgeTypes = {
+    buttonedge: ButtonEdge,
+};
 
 const nodeOrigin = [0.5, 0];
 
@@ -26,7 +29,7 @@ const QueryBuilder = memo(function QueryBuilder() {
     const [debouncedNodes] = useDebounce(nodes, 1000);
     const [debouncedEdges] = useDebounce(edges, 1000);
 
-    useEffect (() => {
+    useEffect(() => {
         updateQuestionField('nodes', debouncedNodes);
         updateQuestionField('edges', debouncedEdges);
     }, [debouncedNodes, debouncedEdges, updateQuestionField]);
@@ -41,7 +44,7 @@ const QueryBuilder = memo(function QueryBuilder() {
     const { screenToFlowPosition } = useReactFlow();
 
     const onConnect = useCallback(
-        (params) => setEdges((eds) => addEdge(params, eds)),
+        (params) => setEdges((eds) => addEdge({ ...params, type: 'buttonedge' }, eds)),
         [],
     );
 
@@ -66,7 +69,9 @@ const QueryBuilder = memo(function QueryBuilder() {
 
                 setNodes((nds) => nds.concat(newNode));
                 setEdges((eds) =>
-                    eds.concat({ id, source: connectionState.fromNode.id, target: id }),
+                    eds.concat({
+                        id, source: connectionState.fromNode.id, target: id, type: 'buttonedge'
+                    }),
                 );
             }
         },
@@ -126,6 +131,7 @@ const QueryBuilder = memo(function QueryBuilder() {
                 onConnect={onConnect}
                 onConnectEnd={onConnectEnd}
                 nodeTypes={nodeTypes}
+                edgeTypes={edgeTypes}
                 onPaneClick={onPaneClick}
                 onPaneContextMenu={onPaneContextMenu}
                 onNodeContextMenu={onNodeContextMenu}
