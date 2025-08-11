@@ -5,6 +5,7 @@ import clsx from "clsx";
 import Selecto from "react-selecto";
 import QuestionsReader from "./QuestionsReader";
 import { useStore } from "@/stores/questions";
+import { get } from "idb-keyval";
 
 export default function Keyframes({ handleOpen }) {
     const [sortOption, setSortOption] = useState("d");
@@ -18,6 +19,34 @@ export default function Keyframes({ handleOpen }) {
     const redoArray = [...currentQuestion.redoArray];
 
     const ref = useRef(null);
+
+    const [blobUrls, setBlobUrls] = useState({});
+
+    useEffect(() => {
+        let isMounted = true;
+
+        async function loadBlobs() {
+            const urls = {};
+            for (const img of images) {
+                if (img.blobKey) {
+                    const val = await get(img.blobKey);
+                    if (val) {
+                        urls[img.blobKey] = URL.createObjectURL(val);
+                    }
+                }
+            }
+            if (isMounted) setBlobUrls(urls);
+        }
+
+        loadBlobs();
+
+        return () => {
+            isMounted = false;
+            Object.values(blobUrls).forEach(URL.revokeObjectURL);
+        };
+    }, [images]);
+
+
     function changeWorkSpace(e) {
         // change currentQuestion
         setCurrentQuestion(e.target.value)
@@ -229,25 +258,28 @@ export default function Keyframes({ handleOpen }) {
                 <QuestionsReader />
             </Box>
             <div className="grid grid-cols-5 gap-4 p-4" id="selecto">
-                {images?.map((image, index) => (
-                    <figure className="relative image p-2 hover:bg-[rgba(68,171,255,0.15)] [&_*]:select-none [&_*]:pointer-events-none"
-                        key={`${image.key}-${image.video_id}-${image.group_id}`}
-                        data-key={`${image.key}-${image.video_id}-${image.group_id}`}
-                        onDoubleClick={() => handleOpen(image)}
-                    >
-                        <img src={image.blobUrl || imagePath(image.key, image.video_id, image.group_id)}
-                        // onError={(e) => {
-                        //     e.target.src = ""
-                        // }}
-                        />
-                        <figcaption className="flex flex-row justify-between ">
-                            <Typography variant="caption" className=" text-center text-black bg-opacity-50 p-1 rounded">
-                                L{image.group_id} / V{image.video_id} / {image.key}
-                            </Typography>
-                            <Typography className={clsx(image.confidence > 0.95 ? "text-blue-300" : image.confidence > 0.9 ? "text-yellow-500" : image.confidence > 0.8 ? "text-gray-400" : image.confidence > 0.7 ? "text-orange-900" : "")}>{image.confidence}</Typography>
-                        </figcaption>
-                    </figure>
-                ))}
+                {images?.map((image) => {
+                    const src = blobUrls[image.blobKey] || imagePath(image.key, image.video_id, image.group_id);
+                    return (
+                        <figure className="relative image p-2 hover:bg-[rgba(68,171,255,0.15)] [&_*]:select-none [&_*]:pointer-events-none"
+                            key={`${image.key}-${image.video_id}-${image.group_id}`}
+                            data-key={`${image.key}-${image.video_id}-${image.group_id}`}
+                            onDoubleClick={() => handleOpen(image)}
+                        >
+                            <img src={src}
+                            // onError={(e) => {
+                            //     e.target.src = ""
+                            // }}
+                            />
+                            <figcaption className="flex flex-row justify-between ">
+                                <Typography variant="caption" className=" text-center text-black bg-opacity-50 p-1 rounded">
+                                    L{image.group_id} / V{image.video_id} / {image.key}
+                                </Typography>
+                                <Typography className={clsx(image.confidence > 0.95 ? "text-blue-300" : image.confidence > 0.9 ? "text-yellow-500" : image.confidence > 0.8 ? "text-gray-400" : image.confidence > 0.7 ? "text-orange-900" : "")}>{image.confidence}</Typography>
+                            </figcaption>
+                        </figure>
+                    )
+                })}
             </div>
         </div>
     )

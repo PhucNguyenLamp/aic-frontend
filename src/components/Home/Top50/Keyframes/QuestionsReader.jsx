@@ -19,7 +19,7 @@ export default function QuestionsReader() {
                             id: getId(),
                             position: { x: 0, y: 0 },
                             type: 'text',
-                            data: { text: content },
+                            data: { category: 'keyframe_tag_filtering', text: 'Text', select: 'tree' },
                             origin: [0.5, 0.0],
                         }],
                         edges: [],

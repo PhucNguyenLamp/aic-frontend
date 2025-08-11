@@ -3,12 +3,13 @@ import Button from '@mui/material/Button';
 import Modal from '@mui/material/Modal';
 import VideoJS from './VideoJS';
 import React, { useContext } from 'react';
-import { videoPath } from '@/utils/imagePath';
+import { getImageKey, videoPath } from '@/utils/imagePath';
 import { useStore } from '@/stores/questions';
+import { get, set } from 'idb-keyval';
 
 export default function VideoModal({ image, open, onClose }) {
     // const { undoRef, redoRef } = useContext(AppContext)
-    const { updateQuestionField, getCurrentQuestion } = useStore();
+    const { updateQuestionField, getCurrentQuestion, currentQuestionId } = useStore();
 
     const images = getCurrentQuestion().images;
     const undoArray = getCurrentQuestion().undoArray;
@@ -104,15 +105,15 @@ export default function VideoModal({ image, open, onClose }) {
         // Convert to WebP Blob
         canvas.toBlob(async (blob) => {
             if (!blob) return;
-
-            const objectUrl = URL.createObjectURL(blob);
-
+            const blobKey = getImageKey(image.key, image.video_id, image.group_id, currentQuestionId);
+            await set(blobKey, blob);
+            console.log(blobKey, blobKey);
             // Update frontend state with blob URL
             const newImage = {
                 key: frameKey,
-                blobUrl: objectUrl,
                 video_id: image.video_id,
                 group_id: image.group_id,
+                blobKey,
                 fps: fps,
                 confidence: 1.0, // because we picked this frame
             };
