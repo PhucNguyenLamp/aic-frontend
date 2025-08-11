@@ -13,6 +13,7 @@ export default function Top50() {
     const handleOpen = (image) => {
         setModalImage(image);
         setIsOpenModal(true);
+        console.log("Opening modal for image:", image);
     };
 
     // useEffect(() => {

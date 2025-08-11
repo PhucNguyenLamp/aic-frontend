@@ -16,9 +16,10 @@ const nodeOrigin = [0.5, 0];
 const QueryBuilder = memo(function QueryBuilder() {
     const ref = useRef(null);
 
-    // const currentQuestionId = useStore((s) => s.currentQuestionId);
+    const currentQuestionId = useStore((s) => s.currentQuestionId);
     const [nodes, setNodes, onNodesChange] = useNodesState(useStore.getState().getCurrentQuestion().nodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(useStore.getState().getCurrentQuestion().edges);
+    console.log("change nodes and edges", nodes, edges);
     const getId = useStore((s) => s.getId);
     const updateQuestionField = useStore((s) => s.updateQuestionField);
 
@@ -29,6 +30,11 @@ const QueryBuilder = memo(function QueryBuilder() {
         updateQuestionField('nodes', debouncedNodes);
         updateQuestionField('edges', debouncedEdges);
     }, [debouncedNodes, debouncedEdges, updateQuestionField]);
+
+    useEffect(() => {
+        setNodes(useStore.getState().getCurrentQuestion().nodes);
+        setEdges(useStore.getState().getCurrentQuestion().edges);
+    }, [currentQuestionId]);
 
     const [menu, setMenu] = useState(null);
 
@@ -54,7 +60,7 @@ const QueryBuilder = memo(function QueryBuilder() {
                         y: clientY,
                     }),
                     type: 'text',
-                    data: { label: `Node ${id}` },
+                    data: { category: 'keyframe_tag_filtering', text: 'Text', select: 'tree' },
                     origin: [0.5, 0.0],
                 };
 

@@ -38,7 +38,7 @@ export default function ContextMenu({
             id: getId(),
             type: 'text',
             position: screenToFlowPosition({ x: e.clientX - 50, y: e.clientY - 50 }),
-            data: { text: 'Text' },
+            data: { category: 'keyframe_tag_filtering', text: 'Text', select: 'tree' },
         });
     }, [screenToFlowPosition, getId, addNodes]);
 

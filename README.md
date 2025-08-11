@@ -21,8 +21,8 @@ open your browser at `localhost:5173`
 `<-` `->` để di chuyển khi xem video
 
 ## Demo
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/b8a63bd4-a275-4f95-8336-98c7f162e559" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/73c9c121-6c74-42e2-8cdc-192a54bef95f" />
 
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/ddceff0d-bb12-4c38-bc64-907e86d53483" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/035662d2-c7cc-4832-9441-ab8d8e821abc" />
 
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/9ca384f0-3c2f-4c07-9fb8-a200fe1d9dad" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/4b8ac863-1314-4f47-9900-bba3db494857" />

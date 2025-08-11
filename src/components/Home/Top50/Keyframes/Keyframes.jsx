@@ -10,6 +10,8 @@ export default function Keyframes({ handleOpen }) {
     const [sortOption, setSortOption] = useState("d");
     // const { questionNumber, setCurrentQuestion, questions, undoRef, redoRef, images, setImages, workspaceRef } = useContext(AppContext);
     const { getCurrentQuestion, setCurrentQuestion, updateQuestionField, questions, currentQuestionId } = useStore();
+    console.log(currentQuestionId);
+    console.log(questions)
     const currentQuestion = getCurrentQuestion();
     const images = [...currentQuestion.images];
     const undoArray = [...currentQuestion.undoArray];
