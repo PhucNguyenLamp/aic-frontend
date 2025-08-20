@@ -1,0 +1,42 @@
+.custom-resizer {
+    position: relative;
+    z-index: 10;
+    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function)
+            /* cubic-bezier(0.4, 0, 0.2, 1) */
+        );
+    transition-duration: var(--tw-duration, var(--default-transition-duration)
+            /* 150ms */
+        );
+}
+
+.custom-resizer:hover {
+    background: #1976d2 !important;
+}
+
+.custom-resizer-vertical::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 12px;
+    height: 100%;
+    transform: translateX(-50%);
+    cursor: col-resize;
+}
+
+.custom-resizer-horizontal::before {
+    content: '';
+    position: absolute;
+    /* top: 0;
+    left: 50%;
+    width: 12px;
+    height: 100%;
+    transform: translateX(-50%); */
+    left: 0;
+    height: 12px;
+    width: 100%;
+    transform: translateY(-50%);
+
+    cursor: row-resize;
+}

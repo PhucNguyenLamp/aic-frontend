@@ -12,8 +12,6 @@ export default function VideoModal({ image, open, onClose }) {
     const { updateQuestionField, getCurrentQuestion, currentQuestionId } = useStore();
 
     const images = getCurrentQuestion().images;
-    const undoArray = getCurrentQuestion().undoArray;
-    const redoArray = getCurrentQuestion().redoArray;
 
     const playerRef = React.useRef(null);
     const intervalRef = React.useRef(null);
@@ -27,8 +25,8 @@ export default function VideoModal({ image, open, onClose }) {
         text: `Frame ${key}`,
     }));
 
-    const startTime = Math.max(frameDuration * image?.key - 10, 0);
-    const endTime = frameDuration * image?.key + 10;
+    // const startTime = Math.max(frameDuration * image?.key - 10, 0);
+    // const endTime = frameDuration * image?.key + 10;
     const [showFullTimeline, setShowFullTimeline] = React.useState(true);
     const videoJsOptions = {
         autoplay: false,
@@ -105,9 +103,8 @@ export default function VideoModal({ image, open, onClose }) {
         // Convert to WebP Blob
         canvas.toBlob(async (blob) => {
             if (!blob) return;
-            const blobKey = getImageKey(image.key, image.video_id, image.group_id, currentQuestionId);
+            const blobKey = getImageKey(frameKey, image.video_id, image.group_id);
             await set(blobKey, blob);
-            console.log(blobKey, blobKey);
             // Update frontend state with blob URL
             const newImage = {
                 key: frameKey,
@@ -120,14 +117,10 @@ export default function VideoModal({ image, open, onClose }) {
 
 
             // setSortedImages(prev => [...prev, newImage]);
-            updateQuestionField('images', [...images, newImage]);
+            updateQuestionField({'images': [...images, newImage]});
             // undoRef.current.push(images);
-            updateQuestionField('undoArray', [...undoArray, images])
-            // redoRef.current = [];
-            updateQuestionField('redoArray', [])
             onClose();
         }, "image/webp", 0.9);
-
     };
 
 

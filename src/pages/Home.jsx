@@ -5,34 +5,39 @@ import SplitPane from 'react-split-pane';
 import { useState, useEffect, memo, useContext } from 'react';
 import HistoryModal from '@/components/HistoryModal';
 import { useStore } from '@/stores/questions';
+import './resizer.css'
 
 export default memo(function Home({ sendData, loadHistory }) {
     const [historyModalOpen, setHistoryModalOpen] = useState(false);
-    const { questions } = useStore();
+    const { getCurrentQuestion } = useStore();
     const exportQuestions = () => {
 
-        const data = Object.entries(questions).map(([key, q]) => ({
-            fileName: key,
-            images: q.images,
-        }));
+        // const data = Object.entries(questions).map(([key, q]) => ({
+        //     fileName: key,
+        //     images: q.images,
+        // }));
         // split into to data.length parts
-        data.map((item) => {
-            const blob = new Blob([JSON.stringify(item, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${item.fileName}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-        })
+        const currentQuestion = getCurrentQuestion();
+
+        // data.map((item) => {
+        const blob = new Blob([JSON.stringify(currentQuestion, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${currentQuestion.questionName}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        // })
     }
 
     return (
         <>
             <SplitPane split="vertical" defaultSize={700}
-                paneStyle={{ overflow: "auto" }} resizerStyle={{
+                paneStyle={{ overflow: "auto" }} 
+                resizerStyle={{
                     background: '#e5e7eb', width: '4px', cursor: 'col-resize', borderLeft: '1px solid #d1d5db', borderRight: '1px solid #d1d5db'
                 }}
+                resizerClassName='custom-resizer custom-resizer-vertical'
             >
                 <Queries sendData={sendData} />
                 <Top50 />

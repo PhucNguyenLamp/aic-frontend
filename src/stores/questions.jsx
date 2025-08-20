@@ -3,12 +3,16 @@ import { persist } from 'zustand/middleware'
 import { applyNodeChanges, applyEdgeChanges } from '@xyflow/react'
 
 const defaultQuestion = {
+    questionName: 'default',
     question: 'default',
     images: [],
+    searchImages: [],
     nodes: [],
     edges: [],
     undoArray: [],
-    redoArray: []
+    redoArray: [],
+    undoSearchArray: [],
+    redoSearchArray: []
 }
 
 
@@ -16,13 +20,6 @@ export const useStore = create(
     persist((set, get) => ({
         currentQuestionId: "default",
         questions: { default: { ...defaultQuestion } },
- // { [id]: {
-        //  question,
-        //  images,
-        //  nodes,
-        //  edges,
-        //  undoArray,
-        //  redoArray } }
         id: 1,
         getId: () => {
             set((state) => ({ id: state.id + 1 }));
@@ -33,13 +30,6 @@ export const useStore = create(
 
         setCurrentQuestion: (id) => set({ currentQuestionId: id }),
 
-        updateQuestionField: (field, value, id = get().currentQuestionId) =>
-            set((state) => ({
-                questions: {
-                    ...state.questions,
-                    [id]: { ...state.questions[id], [field]: value }
-                }
-            })),
 
         addQuestions: (questions) => {
             set((state) => ({
@@ -54,7 +44,79 @@ export const useStore = create(
                 questions: questions,
             }))
         },
+        updateQuestionField: (fields, history = true, id = get().currentQuestionId ) => {
+            const currentQuestion = get().getCurrentQuestion();
+            const { undoArray, undoSearchArray, images, searchImages } = currentQuestion;
 
+            const historyData = history ? {
+                undoArray: [...undoArray, images],
+                redoArray: [],
+                undoSearchArray: [...undoSearchArray, searchImages],
+                redoSearchArray: [],
+            } : {};
+
+            set((state) => ({
+                questions: {
+                    ...state.questions,
+                    [id]: {
+                        ...state.questions[id],
+                        ...historyData,
+                        ...fields,
+                    }
+                }
+            }))
+        },
+        // undo thì lấy update lại
+        undo: () => {
+            const currentQuestion = get().getCurrentQuestion();
+            const undoArray = [...currentQuestion.undoArray];
+            if (undoArray.length === 0) return;
+            const images = [...currentQuestion.images];
+            const searchImages = [...currentQuestion.searchImages];
+
+            const undoSearchArray = [...currentQuestion.undoSearchArray];
+            const redoArray = [...currentQuestion.redoArray];
+            const redoSearchArray = [...currentQuestion.redoSearchArray];
+
+            const undoTopElement = undoArray.pop()
+            const undoSearchTopElement = undoSearchArray.pop()
+
+            const updateQuestionField = get().updateQuestionField;
+
+            updateQuestionField({
+                images: undoTopElement,
+                searchImages: undoSearchTopElement,
+                undoArray: undoArray,
+                redoArray: [...redoArray, images],
+                undoSearchArray: undoSearchArray,
+                redoSearchArray: [...redoSearchArray, searchImages],
+            })
+        },
+        // redo thì update lại
+        redo: () => {
+            const currentQuestion = get().getCurrentQuestion();
+            const redoArray = [...currentQuestion.redoArray];
+            if (redoArray.length === 0) return;
+            
+            const images = [...currentQuestion.images];
+            const searchImages = [...currentQuestion.searchImages];
+
+            const undoArray = [...currentQuestion.undoArray];
+            const undoSearchArray = [...currentQuestion.undoSearchArray];
+            const redoSearchArray = [...currentQuestion.redoSearchArray];
+            
+            const redoTopElement = redoArray.pop()
+            const redoSearchTopElement = redoSearchArray.pop()
+            const updateQuestionField = get().updateQuestionField;
+            updateQuestionField({
+                images: redoTopElement,
+                searchImages: redoSearchTopElement,
+                undoArray: [...undoArray, images],
+                redoArray: [...redoArray],
+                undoSearchArray: [...undoSearchArray, searchImages],
+                redoSearchArray: [...redoSearchArray]
+            })
+        }
         // fucking flow // fucking trash this, so bad
         // onNodesChange: (changes) =>
         //     set((state) => ({

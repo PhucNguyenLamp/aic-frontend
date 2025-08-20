@@ -13,18 +13,22 @@ export default function QuestionsReader() {
                 const content = event.target.result;
                 const data = {
                     [file.name]: {
+                        questionName: file.name,
                         question: content,
                         images: [],
+                        searchImages: [],
                         nodes: [{
                             id: getId(),
                             position: { x: 0, y: 0 },
                             type: 'text',
-                            data: { category: 'keyframe_tag_filtering', text: 'Text', select: 'tree' },
+                            data: { category: 'keyframe_tag_filtering', text: 'Text', select: [], weight: 1 },
                             origin: [0.5, 0.0],
                         }],
                         edges: [],
                         undoArray: [],
-                        redoArray: []
+                        redoArray: [],
+                        undoSearchArray: [],
+                        redoSearchArray: []
                     }
                 };
                 resolve(data);

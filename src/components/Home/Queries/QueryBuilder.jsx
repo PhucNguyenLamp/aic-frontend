@@ -1,6 +1,6 @@
 // QueryBuilder.jsx
 import React, { useRef, useState, useCallback, useContext, memo, useEffect } from 'react';
-import { ReactFlow, applyNodeChanges, applyEdgeChanges, addEdge, Background, MarkerType, useNodesState, useEdgesState, useReactFlow } from '@xyflow/react';
+import { ReactFlow, applyNodeChanges, applyEdgeChanges, addEdge, Background, MarkerType, useNodesState, useEdgesState, useReactFlow, Controls } from '@xyflow/react';
 import ContextMenu from './ContextMenu';
 import { useDebounce } from 'use-debounce';
 import TextNode from './TextNode';
@@ -22,7 +22,7 @@ const QueryBuilder = memo(function QueryBuilder() {
     const currentQuestionId = useStore((s) => s.currentQuestionId);
     const [nodes, setNodes, onNodesChange] = useNodesState(useStore.getState().getCurrentQuestion().nodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(useStore.getState().getCurrentQuestion().edges);
-    console.log("change nodes and edges", nodes, edges);
+    // console.log("change nodes and edges", nodes, edges);
     const getId = useStore((s) => s.getId);
     const updateQuestionField = useStore((s) => s.updateQuestionField);
 
@@ -30,8 +30,10 @@ const QueryBuilder = memo(function QueryBuilder() {
     const [debouncedEdges] = useDebounce(edges, 1000);
 
     useEffect(() => {
-        updateQuestionField('nodes', debouncedNodes);
-        updateQuestionField('edges', debouncedEdges);
+        updateQuestionField({
+            'nodes': debouncedNodes,
+            'edges': debouncedEdges
+        }, false);
     }, [debouncedNodes, debouncedEdges, updateQuestionField]);
 
     useEffect(() => {
@@ -63,7 +65,7 @@ const QueryBuilder = memo(function QueryBuilder() {
                         y: clientY,
                     }),
                     type: 'text',
-                    data: { category: 'keyframe_tag_filtering', text: 'Text', select: 'tree' },
+                    data: { category: 'keyframe_tag_filtering', text: 'Text', select: [], weight: 1 },
                     origin: [0.5, 0.0],
                 };
 
@@ -138,6 +140,7 @@ const QueryBuilder = memo(function QueryBuilder() {
                 fitView
             >
                 <Background variant='lines' />
+                <Controls />
                 {menu && <ContextMenu getId={getId} onClick={onPaneClick} {...menu} />}
             </ReactFlow>
         </div>

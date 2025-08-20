@@ -17,17 +17,18 @@ function App() {
 
   const sendQuery = useCallback(async (query) => {
     const result = await searchKeyframes(query);
-    updateQuestionField('images', result);
+    updateQuestionField({ searchImages: result });
+    
   }, []);
 
-  
+
 
   return (
     <div className="relative w-screen h-screen">
-          <Home
-            sendData={sendQuery}
-            loadHistory={loadHistory}
-          />
+      <Home
+        sendData={sendQuery}
+        loadHistory={loadHistory}
+      />
     </div>
   );
 }

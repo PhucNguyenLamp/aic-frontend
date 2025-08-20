@@ -27,6 +27,7 @@
     "react-dom": "^19.1.0",
     "react-dropzone": "^14.3.8",
     "react-selecto": "^1.26.3",
+    "react-sortablejs": "^6.1.4",
     "react-split-pane": "^0.1.92",
     "tailwindcss": "^4.1.11",
     "use-debounce": "^10.0.5",

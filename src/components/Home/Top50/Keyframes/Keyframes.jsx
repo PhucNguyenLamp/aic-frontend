@@ -1,18 +1,18 @@
 import { useState, useEffect, useRef, useContext } from "react";
 import { Box, Button, Card, Fab, FormControl, InputLabel, Menu, MenuItem, Select, Slider, Typography } from "@mui/material";
-import { imagePath } from "@/utils/imagePath";
+import { getImage, getImageKey, imagePath } from "@/utils/imagePath";
 import clsx from "clsx";
 import Selecto from "react-selecto";
 import QuestionsReader from "./QuestionsReader";
 import { useStore } from "@/stores/questions";
 import { get } from "idb-keyval";
+import { useStoreImages } from "@/stores/blobs";
 
 export default function Keyframes({ handleOpen }) {
     const [sortOption, setSortOption] = useState("d");
-    // const { questionNumber, setCurrentQuestion, questions, undoRef, redoRef, images, setImages, workspaceRef } = useContext(AppContext);
-    const { getCurrentQuestion, setCurrentQuestion, updateQuestionField, questions, currentQuestionId } = useStore();
-    console.log(currentQuestionId);
-    console.log(questions)
+    const { getCurrentQuestion, setCurrentQuestion, updateQuestionField, questions, currentQuestionId, undo, redo } = useStore();
+    const { blobs, setBlob } = useStoreImages();
+    
     const currentQuestion = getCurrentQuestion();
     const images = currentQuestion.images;
     const undoArray = [...currentQuestion.undoArray];
@@ -20,87 +20,28 @@ export default function Keyframes({ handleOpen }) {
 
     const ref = useRef(null);
 
-    const [blobUrls, setBlobUrls] = useState({});
-
-    useEffect(() => {
-        let isMounted = true;
-
-        async function loadBlobs() {
-            const urls = {};
-            for (const img of images) {
-                if (img.blobKey) {
-                    const val = await get(img.blobKey);
-                    if (val) {
-                        urls[img.blobKey] = URL.createObjectURL(val);
-                    }
-                }
-            }
-            if (isMounted) setBlobUrls(urls);
-        }
-
-        loadBlobs();
-
-        return () => {
-            isMounted = false;
-            Object.values(blobUrls).forEach(URL.revokeObjectURL);
-        };
-    }, [images]);
-
-
-    function changeWorkSpace(e) {
-        // change currentQuestion
-        setCurrentQuestion(e.target.value)
-    }
-
-    const selectoRef = useRef(null);
-    const undo = () => {
-        if (undoArray.length > 0) {
-            const lastState = undoArray.pop(); updateQuestionField('undoArray', [...undoArray]);
-            updateQuestionField('redoArray', [...redoArray, images]);
-            updateQuestionField('images', lastState);
-        }
-    }
-
-    const redo = () => {
-        if (redoArray.length > 0) {
-            const lastState = redoArray.pop(); updateQuestionField('redoArray', [...redoArray]);
-            updateQuestionField('undoArray', [...undoArray, images]);
-            updateQuestionField('images', lastState);
-        }
-    }
-
-    useEffect(() => {
-        const newSortedImages = [...images].sort((a, b) => {
-            if (sortOption === "g") {
-                return a.group_id - b.group_id || a.video_id - b.video_id || a.key - b.key;
-            } else if (sortOption === "hc") {
-                return b.confidence - a.confidence;
-            } else
-                return 0;
-        });
-        updateQuestionField('images', newSortedImages);
-    }, [sortOption])
-
     useEffect(() => {
         const handleKeyDown = (e) => {
             const isFocusedInside = ref.current && (ref.current === document.activeElement || ref.current.contains(document.activeElement));
             if (!isFocusedInside) return;
-
+            
             if (e.keyCode == 46) {
                 const selectedElements = document.querySelectorAll("#selecto .image.selected");
+                if (!selectedElements.length) return;
                 // delete selected elements by sorting them by key
                 const selectedKeys = Array.from(selectedElements).map((el) => {
                     return el.getAttribute("data-key");
                 });
                 const newSortedImages = images.filter(image => !selectedKeys.includes(`${image.key}-${image.video_id}-${image.group_id}`));
-                updateQuestionField('images', newSortedImages);
-                updateQuestionField('undoArray', [...undoArray, images]);
-                updateQuestionField('redoArray', []);
+                updateQuestionField({
+                    'images': newSortedImages,
+                });
             }
+
             // control + a, select all
             if (e.ctrlKey && e.key.toLowerCase() === "a") {
                 e.preventDefault();
-                const allElements = document.querySelectorAll("#selecto .image");
+                const allElements = document.querySelectorAll("#selecto .image.search");
                 // give all elements selected class
                 allElements.forEach(el => {
                     el.classList.add("selected");
@@ -118,88 +59,31 @@ export default function Keyframes({ handleOpen }) {
             }
         }
         document.addEventListener("keydown", handleKeyDown);
-
-        // const handleDragDown = (e) => {
-        //     if (e.keyCode == 2){
-        //         e.preventDefault();
-        //         const selectedElements = document.querySelectorAll("#selecto .image.selected");
-
-        //     }
-        // }
-
-        // document.addEventListener("keydown", handleDragDown);
-        const handleDragUp = (e) => {
-            if (ref.current && !ref.current.contains(e.target)) return;
-            if (e.button !== 2) return; // Right-click only
-
-            const selectedElements = document.querySelectorAll("#selecto .image.selected");
-            const currentElementMouseOn = document.elementFromPoint(e.clientX, e.clientY);
-            if (!currentElementMouseOn) return;
-
-            const targetKey = currentElementMouseOn.getAttribute("data-key");
-            if (!targetKey) return;
-
-            // Find the index of the drop target
-            const dropIndex = images.findIndex(img =>
-                `${img.key}-${img.video_id}-${img.group_id}` === targetKey
-            );
-
-            if (dropIndex === -1) return;
-
-            // Extract keys of selected images
-            const selectedKeys = Array.from(selectedElements).map(el =>
-                el.getAttribute("data-key")
-            );
-
-            // Filter out selected images from original array
-            const remainingImages = images.filter(img =>
-                !selectedKeys.includes(`${img.key}-${img.video_id}-${img.group_id}`)
-            );
-
-            // Extract selected image objects
-            const selectedImagesData = images.filter(img =>
-                selectedKeys.includes(`${img.key}-${img.video_id}-${img.group_id}`)
-            );
-
-            // Insert selected at dropIndex
-            const newImages = [
-                ...remainingImages.slice(0, dropIndex),
-                ...selectedImagesData,
-                ...remainingImages.slice(dropIndex),
-            ];
-
-            updateQuestionField('images', newImages);
-            updateQuestionField('undoArray', [...undoArray, images]);
-            updateQuestionField('redoArray', []);
-            setSortOption("d");
-        }
-
-        document.addEventListener("mouseup", handleDragUp);
-
-        const handleRightClick = (e) => {
-            if (ref.current && !ref.current.contains(e.target)) return;
-            const selectedElements = document.querySelectorAll("#selecto .image.selected");
-            if (selectedElements.length > 0) return;
-
-            const currentElementMouseOn = document.elementFromPoint(e.clientX, e.clientY);
-            if (currentElementMouseOn && currentElementMouseOn.classList.contains("image")) {
-                const selectedElements = document.querySelectorAll("#selecto .image.selected");
-                selectedElements.forEach(el => el.classList.remove("selected"));
-                currentElementMouseOn.classList.add("selected");
-                selectoRef.current.setSelectedTargets([currentElementMouseOn]);
-            }
-        }
-        document.addEventListener("mousedown", handleRightClick);
-
         return () => {
             document.removeEventListener("keydown", handleKeyDown);
-            document.removeEventListener("mouseup", handleDragUp);
-            document.removeEventListener("mousedown", handleRightClick);
         };
     }, [images, undoArray, redoArray]);
 
+    function changeWorkSpace(e) {
+        // change currentQuestion
+        setCurrentQuestion(e.target.value)
+    }
+
+    const selectoRef = useRef(null);
+    const sortImages = (sortOption) => {
+        const newSortedImages = [...images].sort((a, b) => {
+            if (sortOption === "g") {
+                return a.group_id - b.group_id || a.video_id - b.video_id || a.key - b.key;
+            } else if (sortOption === "hc") {
+                return b.confidence - a.confidence;
+            } else
+                return 0;
+        });
+        updateQuestionField({ 'images': newSortedImages });
+    }
+
     return (
-        <div className="relative elements overflow-y-scroll w-full container" ref={ref} tabIndex={0}>
+        <div className="relative elements overflow-y-scroll w-full container images" ref={ref} tabIndex={0}>
             <Selecto
                 ref={selectoRef}
                 dragContainer={".container"}
@@ -231,7 +115,11 @@ export default function Keyframes({ handleOpen }) {
                 <Select
                     value={sortOption}
                     label="Sort By"
-                    onChange={e => setSortOption(e.target.value)}
+                    onChange={(e) => {
+                        const sortOption = e.target.value;
+                        sortImages(sortOption);
+                        setSortOption(sortOption);
+                    }}
                 >
                     <MenuItem value="d">Default</MenuItem>
                     <MenuItem value="g">Group</MenuItem>
@@ -257,14 +145,15 @@ export default function Keyframes({ handleOpen }) {
                 </FormControl>
                 <QuestionsReader />
             </Box>
-            <div className="grid grid-cols-5 gap-4 p-4" id="selecto">
+            <div className="grid grid-cols-5 p-4" id="selecto">
                 {images?.map((image) => {
-                    const src = blobUrls[image.blobKey] || imagePath(image.key, image.video_id, image.group_id);
+                    const src = getImage(blobs, getImageKey(image.key, image.video_id, image.group_id));
                     return (
-                        <figure className="relative image p-2 hover:bg-[rgba(68,171,255,0.15)] [&_*]:select-none [&_*]:pointer-events-none"
+                        <figure className="relative image p-2 hover:bg-[rgba(68,171,255,0.15)] [&_*]:select-none [&_*]:pointer-events-none keyframes"
                             key={`${image.key}-${image.video_id}-${image.group_id}`}
                             data-key={`${image.key}-${image.video_id}-${image.group_id}`}
                             onDoubleClick={() => handleOpen(image)}
+                            data-container={"images"}
                         >
                             <img src={src}
                             // onError={(e) => {

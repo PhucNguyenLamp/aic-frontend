@@ -65,7 +65,7 @@ export default function HistoryModal({ loadHistory }) {
                                     <Box>
                                         <h3>Question {key}</h3>
                                         <p>Workspace: {q?.nodes && q?.edges ? "✔️" : "❌"}</p>
-                                        <p>Images: {q?.images.length}</p>
+                                        <p>Images: {q?.images?.length}</p>
                                     </Box>
                                     <Button onClick={(e) => { handleDelete(e, key) }} disabled={key === "default"}> Delete </Button>
                                 </Card>

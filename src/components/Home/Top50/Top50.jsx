@@ -3,22 +3,18 @@ import VideoModal from "./Videos/VideoModal";
 import Videos from "./Videos/Videos";
 import SplitPane from "react-split-pane";
 import Keyframes from "./Keyframes/Keyframes";
-import { useStore } from "zustand";
-
+import "@/pages/resizer.css"
+import { useStore } from "@/stores/questions";
 export default function Top50() {
-
+    const { questions } = useStore();
     const [isOpenModal, setIsOpenModal] = useState(false);
     const [modalImage, setModalImage] = useState(null);
 
     const handleOpen = (image) => {
         setModalImage(image);
         setIsOpenModal(true);
-        console.log("Opening modal for image:", image);
     };
 
-    // useEffect(() => {
-    //     setSortedImages(sortedImages);
-    // }, [sortedImages]);
 
     useEffect(() => {
         const disableContextMenu = (e) => {
@@ -45,10 +41,10 @@ export default function Top50() {
                     borderTop: '1px solid #d1d5db',
                     borderBottom: '1px solid #d1d5db'
                 }}
+                resizerClassName='custom-resizer custom-resizer-horizontal'
             >
-                <Keyframes
-                    handleOpen={handleOpen} />
-                <Videos handleOpen={handleOpen} />
+                <Keyframes handleOpen={handleOpen} />
+                <Videos handleOpen={handleOpen}  />
             </SplitPane>
             <VideoModal
                 image={modalImage}
