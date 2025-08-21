@@ -4,16 +4,23 @@ import QueryBuilder from './QueryBuilder.jsx'
 import { memo } from 'react';
 import { ReactFlowProvider } from '@xyflow/react';
 import { useStore } from '@/stores/questions.jsx';
+import { useQueryClient } from '@tanstack/react-query';
+import { searchKeyframes } from '@/api/services/query.jsx';
 
-const Queries = memo(function Queries({ sendData }) {
+const Queries = memo(function Queries() {
 
-    const { getCurrentQuestion } = useStore();
-    const { nodes, edges } = getCurrentQuestion();
-    const handleSubmit = () => {
-        sendData({
-            nodes: nodes,
-            edges: edges,
-        });
+    const { updateQuestionField } = useStore();
+
+    const queryClient = useQueryClient();
+
+    const handleSubmit = async () => {
+        const data = await searchKeyframes(); // searchImages
+        // then invalidate queries
+        queryClient.invalidateQueries(['history']);
+        updateQuestionField({
+            searchImages: data,
+        })
+
     };
 
     return (

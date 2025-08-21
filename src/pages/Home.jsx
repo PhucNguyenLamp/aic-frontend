@@ -7,16 +7,9 @@ import HistoryModal from '@/components/HistoryModal';
 import { useStore } from '@/stores/questions';
 import './resizer.css'
 
-export default memo(function Home({ sendData, loadHistory }) {
-    const [historyModalOpen, setHistoryModalOpen] = useState(false);
+export default memo(function Home() {
     const { getCurrentQuestion } = useStore();
     const exportQuestions = () => {
-
-        // const data = Object.entries(questions).map(([key, q]) => ({
-        //     fileName: key,
-        //     images: q.images,
-        // }));
-        // split into to data.length parts
         const currentQuestion = getCurrentQuestion();
 
         // data.map((item) => {
@@ -39,11 +32,11 @@ export default memo(function Home({ sendData, loadHistory }) {
                 }}
                 resizerClassName='custom-resizer custom-resizer-vertical'
             >
-                <Queries sendData={sendData} />
+                <Queries />
                 <Top50 />
             </SplitPane>
 
-            <HistoryModal open={historyModalOpen} onClose={() => setHistoryModalOpen(false)} loadHistory={loadHistory} />
+            <HistoryModal />
 
 
             <Fab

@@ -1,41 +1,45 @@
 import { Modal, Box, Card, Button } from "@mui/material";
 import { useEffect, useState, useContext } from "react";
-import { getHistory } from "@/api/services/query";
+import { getHistory, getHistoryId } from "@/api/services/query";
 import QuestionsReader from "./Home/Top50/Keyframes/QuestionsReader";
 import { useStore } from "@/stores/questions";
+import { RichTreeView, useTreeViewApiRef } from "@mui/x-tree-view";
+import { useQuery } from "@tanstack/react-query";
 
-export default function HistoryModal({ loadHistory }) {
-    // const [history, setHistory] = useState([]);
+
+export default function HistoryModal() {
+    const { questions, updateQuestionField, currentQuestionId, setCurrentQuestion, setQuestions, toggleFetched } = useStore();
     const [open, setOpen] = useState(false);
-    // const { questions, setQuestions, questionNumber, setQuestionNumber, images, setImages, workspaceRef, undoRef, redoRef } = useContext(AppContext);
-    const { questions, updateQuestionField, currentQuestionId, setCurrentQuestion, setQuestions } = useStore();
+    const apiRef = useTreeViewApiRef();
 
-    function changeWorkSpace(key) {
-        // change currentQuestion
-        setCurrentQuestion(key);
-        setOpen(false);
+    const { data } = useQuery({
+        queryKey: ['history'],
+        queryFn: getHistory,
+    })
+
+    async function loadHistoryId(id) {
+        const history = await getHistoryId(id);
+        const { questionName, timestamp, searchImages, edges, nodes } = history;
+        setCurrentQuestion(questionName);
+        updateQuestionField({
+            questionName,
+            timestamp,
+            searchImages,
+            edges,
+            nodes,
+        });
+        toggleFetched();
     }
 
-    function handleDelete(e, key) {
-        e.stopPropagation()
-        if (key == currentQuestionId) {
-            setCurrentQuestion("default");
-        }
-        const newQuestions = Object.assign({}, questions);
-        // chac an thi dung structured clone nhma bo di gu gu ga ga
-        delete newQuestions[key];
-
-        setQuestions(newQuestions);
-        // patch tạm thời, đống bug omg
+    async function handleSelectedItemsChange(event, itemId) {
+        const parentId = apiRef.current?.getParentId(itemId)
+        if (!parentId) return;
+        await loadHistoryId(itemId)
     }
 
-    // useEffect(() => {
-    //     const fetchHistory = async () => {
-    //         const data = await getHistory();
-    //         setHistory(data);
-    //     };
-    //     fetchHistory();
-    // }, []);
+    // function handleDelete(e, key) {
+    // }
+
 
     useEffect(() => {
         const toggle = (e) => {
@@ -60,16 +64,10 @@ export default function HistoryModal({ loadHistory }) {
                     <div className="relative flex justify-center w-full mb-2 h-[80vh]">
                         <div className="absolute -top-12 -left-14 text-4xl">📜</div>
                         <div className="relative h-full w-full space-y-4 p-1 overflow-y-auto">
-                            {Object.entries(questions).map(([key, q]) => (
-                                <Card key={key} className="w-full p-4 cursor-pointer hover:!bg-gray-100 flex flex-row justify-between" onClick={() => changeWorkSpace(key)}>
-                                    <Box>
-                                        <h3>Question {key}</h3>
-                                        <p>Workspace: {q?.nodes && q?.edges ? "✔️" : "❌"}</p>
-                                        <p>Images: {q?.images?.length}</p>
-                                    </Box>
-                                    <Button onClick={(e) => { handleDelete(e, key) }} disabled={key === "default"}> Delete </Button>
-                                </Card>
-                            ))}
+                            <RichTreeView items={data}
+                                apiRef={apiRef}
+                                onSelectedItemsChange={handleSelectedItemsChange}
+                            />
                         </div>
                     </div>
                     <QuestionsReader />
@@ -78,6 +76,42 @@ export default function HistoryModal({ loadHistory }) {
         </div>
     );
 }
+
+const MUI_X_PRODUCTS = [
+    {
+        id: 'grid',
+        label: 'Data Grid',
+        children: [
+            { id: 'grid-community', label: '@mui/x-data-grid' },
+            { id: 'grid-pro', label: '@mui/x-data-grid-pro' },
+            { id: 'grid-premium', label: '@mui/x-data-grid-premium' },
+        ],
+    },
+    {
+        id: 'pickers',
+        label: 'Date and Time Pickers',
+        children: [
+            { id: 'pickers-community', label: '@mui/x-date-pickers' },
+            { id: 'pickers-pro', label: '@mui/x-date-pickers-pro' },
+        ],
+    },
+    {
+        id: 'charts',
+        label: 'Charts',
+        children: [
+            { id: 'charts-community', label: '@mui/x-charts' },
+            { id: 'charts-pro', label: '@mui/charts-pro' },
+        ],
+    },
+    {
+        id: 'tree-view',
+        label: 'Tree View',
+        children: [
+            { id: 'tree-view-community', label: '@mui/x-tree-view' },
+            { id: 'tree-view-pro', label: '@mui/x-tree-view-pro' },
+        ],
+    },
+];
 
 
 const style = {

@@ -6,14 +6,14 @@ export default function QuestionsReader() {
     const { addQuestions, questions, getId } = useStore();
 
     const readFileAysnc = async (file) => {
-
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
+            const nameWithoutExtension = file.name.replace(/\.[^/.]+$/, "");
             reader.onload = (event) => {
                 const content = event.target.result;
                 const data = {
-                    [file.name]: {
-                        questionName: file.name,
+                    [nameWithoutExtension]: {
+                        questionName: nameWithoutExtension,
                         question: content,
                         images: [],
                         searchImages: [],

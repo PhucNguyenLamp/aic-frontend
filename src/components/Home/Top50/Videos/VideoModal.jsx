@@ -9,8 +9,8 @@ import { get, set } from 'idb-keyval';
 
 export default function VideoModal({ image, open, onClose }) {
     // const { undoRef, redoRef } = useContext(AppContext)
+    
     const { updateQuestionField, getCurrentQuestion, currentQuestionId } = useStore();
-
     const images = getCurrentQuestion().images;
 
     const playerRef = React.useRef(null);

@@ -21,15 +21,17 @@ export const useStore = create(
         currentQuestionId: "default",
         questions: { default: { ...defaultQuestion } },
         id: 1,
+        fetched: false,
         getId: () => {
             set((state) => ({ id: state.id + 1 }));
             return get().id.toString();
         },
 
+        toggleFetched: () => set((state) => ({ fetched: !state.fetched })),
+
         getCurrentQuestion: () => get().questions[get().currentQuestionId],
 
         setCurrentQuestion: (id) => set({ currentQuestionId: id }),
-
 
         addQuestions: (questions) => {
             set((state) => ({

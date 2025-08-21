@@ -25,6 +25,7 @@ const QueryBuilder = memo(function QueryBuilder() {
     // console.log("change nodes and edges", nodes, edges);
     const getId = useStore((s) => s.getId);
     const updateQuestionField = useStore((s) => s.updateQuestionField);
+    const fetched = useStore((s) => s.fetched);
 
     const [debouncedNodes] = useDebounce(nodes, 1000);
     const [debouncedEdges] = useDebounce(edges, 1000);
@@ -40,6 +41,11 @@ const QueryBuilder = memo(function QueryBuilder() {
         setNodes(useStore.getState().getCurrentQuestion().nodes);
         setEdges(useStore.getState().getCurrentQuestion().edges);
     }, [currentQuestionId]);
+
+    useEffect(() => {
+        setNodes(useStore.getState().getCurrentQuestion().nodes);
+        setEdges(useStore.getState().getCurrentQuestion().edges);
+    }, [fetched]);
 
     const [menu, setMenu] = useState(null);
 

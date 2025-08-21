@@ -88,44 +88,86 @@ export const getVideoByGroupVideoId = async (
 };
 
 export const getHistory = async () => {
-    return Promise.resolve([
+    console.log("GET HISTORY")
+    const mockCall = Promise.resolve([
         {
-            "images": [], // lưu state luôn, tính sau
-            "workspace": {
-                "blocks": {
-                    "languageVersion": 0,
-                    "blocks": [
-                        {
-                            "type": "sequential_block",
-                            "id": "0[H,Mw3|WvbPz-uh@ZX$",
-                            "x": 123,
-                            "y": 48,
-                            "inputs": {
-                                "STACK": {
-                                    "block": {
-                                        "type": "query_block",
-                                        "id": "yuX:)era95?cgKM|Ww-S",
-                                        "fields": {
-                                            "TYPE": "TEXT",
-                                            "TEXT": "text"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    ]
-                }
-            }
+            questionName: "1",
+            timestamp: "8:33pm 20/08/2025",
+            searchImages: [
+
+            ],
+            edges: [],
+            nodes: [],
         },
         {
-            "images": [],
-            "workspace": {},
-        }
+            questionName: "2",
+            timestamp: "7:29pm 20/08/2025",
+            searchImages: [
+
+            ],
+            edges: [],
+            nodes: [],
+        },
+        {
+            questionName: "1",
+            timestamp: "7:00pm 20/08/2025",
+            searchImages: [
+
+            ],
+            edges: [],
+            nodes: [],
+        },
+        {
+            questionName: "2",
+            timestamp: "6:29pm 20/08/2025",
+            searchImages: [
+
+            ],
+            edges: [],
+            nodes: [],
+        },
     ]);
+    const data = await mockCall;
+
+    const grouped = new Map();
+
+    for (const item of data) {
+        if (!grouped.has(item.questionName)) {
+            grouped.set(item.questionName, []);
+        }
+        grouped.get(item.questionName).push(item);
+    }
+
+    const formatted = Array.from(grouped.entries()).map(([questionName, items]) => ({
+        id: questionName,
+        label: questionName,
+        children: items.map(({ timestamp, edges, nodes, searchImages }) => ({
+            id: timestamp,
+            label: timestamp,
+            edges,
+            nodes,
+            searchImages,
+        }))
+    }))
+
+    return formatted;
 };
 
-export const syncHistory = async (history) => {
-    // This function would typically send the updated history to the server
-    // For now, we just log it to the console
-    return Promise.resolve(history);
+export const getHistoryId = async (id) => {
+    // id is timestamp
+    console.log("GET SPECIFIC HISTORY")
+    const mockCall = Promise.resolve({
+        questionName: "1",
+        timestamp: "8:33pm 20/08/2025",
+        searchImages: [],
+        edges: [],
+        nodes: [],
+    });
+    const data = await mockCall;
+    return data;
 };
+// export const syncHistory = async (history) => {
+//     // This function would typically send the updated history to the server
+//     // For now, we just log it to the console
+//     return Promise.resolve(history);
+// };
