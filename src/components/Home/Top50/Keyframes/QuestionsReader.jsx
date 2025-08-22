@@ -21,7 +21,7 @@ export default function QuestionsReader() {
                             id: getId(),
                             position: { x: 0, y: 0 },
                             type: 'text',
-                            data: { category: 'keyframe_tag_filtering', text: 'Text', select: [], weight: 1 },
+                            data: { category: 'ocr_fuzzy_search', text: 'Text', select: [], weight: 1 },
                             origin: [0.5, 0.0],
                         }],
                         edges: [],

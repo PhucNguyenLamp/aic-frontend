@@ -33,6 +33,7 @@
     "react-split-pane": "^0.1.92",
     "tailwindcss": "^4.1.11",
     "use-debounce": "^10.0.5",
+    "use-local-storage-state": "^19.5.0",
     "video.js": "^8.23.3",
     "videojs-markers": "^1.0.1",
     "videojs-offset": "^2.1.3",

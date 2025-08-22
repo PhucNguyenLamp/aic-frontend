@@ -31,7 +31,8 @@ export default function Top50() {
         <div className="relative h-screen flex flex-col">
 
             <SplitPane
-                defaultSize={400}
+                defaultSize={parseInt(localStorage.getItem('splitHor'), 10) || 400}
+                onChange={(size) => localStorage.setItem('splitHor', size)}
                 split="horizontal"
                 paneStyle={{ overflow: "auto" }}
                 resizerStyle={{

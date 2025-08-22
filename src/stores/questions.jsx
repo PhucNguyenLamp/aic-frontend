@@ -27,6 +27,14 @@ export const useStore = create(
             return get().id.toString();
         },
 
+        sortOption: "g",
+        setSortOption: (option) => set({ sortOption: option }),
+        groupOption: "g",
+        setGroupOption: (option) => set({ groupOption: option }),
+
+        imagesSortOption: "g",
+        setImagesSortOption: (option) => set({ imagesSortOption: option }),
+
         toggleFetched: () => set((state) => ({ fetched: !state.fetched })),
 
         getCurrentQuestion: () => get().questions[get().currentQuestionId],

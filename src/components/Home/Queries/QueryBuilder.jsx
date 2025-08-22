@@ -18,6 +18,7 @@ const nodeOrigin = [0.5, 0];
 
 const QueryBuilder = memo(function QueryBuilder() {
     const ref = useRef(null);
+    const { fitView } = useReactFlow();
 
     const currentQuestionId = useStore((s) => s.currentQuestionId);
     const [nodes, setNodes, onNodesChange] = useNodesState(useStore.getState().getCurrentQuestion().nodes);
@@ -40,6 +41,7 @@ const QueryBuilder = memo(function QueryBuilder() {
     useEffect(() => {
         setNodes(useStore.getState().getCurrentQuestion().nodes);
         setEdges(useStore.getState().getCurrentQuestion().edges);
+        fitView();
     }, [currentQuestionId]);
 
     useEffect(() => {
@@ -71,7 +73,7 @@ const QueryBuilder = memo(function QueryBuilder() {
                         y: clientY,
                     }),
                     type: 'text',
-                    data: { category: 'keyframe_tag_filtering', text: 'Text', select: [], weight: 1 },
+                    data: { category: 'ocr_fuzzy_search', text: 'Text', select: [], weight: 1 },
                     origin: [0.5, 0.0],
                 };
 

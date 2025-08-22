@@ -9,8 +9,8 @@ import { get } from "idb-keyval";
 import { useStoreImages } from "@/stores/blobs";
 
 export default function Keyframes({ handleOpen }) {
-    const [sortOption, setSortOption] = useState("d");
-    const { getCurrentQuestion, setCurrentQuestion, updateQuestionField, questions, currentQuestionId, undo, redo } = useStore();
+    // const [sortOption, setSortOption] = useState("d");
+    const { getCurrentQuestion, setCurrentQuestion, updateQuestionField, questions, currentQuestionId, undo, redo, imagesSortOption: sortOption, setImagesSortOption: setSortOption } = useStore();
     const { blobs, setBlob } = useStoreImages();
     
     const currentQuestion = getCurrentQuestion();
@@ -25,7 +25,7 @@ export default function Keyframes({ handleOpen }) {
             const isFocusedInside = ref.current && (ref.current === document.activeElement || ref.current.contains(document.activeElement));
             if (!isFocusedInside) return;
             
-            if (e.keyCode == 46) {
+            if (e.keyCode == 46 || e.keyCode == 8 || e.key.toLowerCase() == "d") {
                 const selectedElements = document.querySelectorAll("#selecto .image.selected");
                 if (!selectedElements.length) return;
                 // delete selected elements by sorting them by key
@@ -41,7 +41,8 @@ export default function Keyframes({ handleOpen }) {
             // control + a, select all
             if (e.ctrlKey && e.key.toLowerCase() === "a") {
                 e.preventDefault();
-                const allElements = document.querySelectorAll("#selecto .image.search");
+                console.log("IMAGES RAN")
+                const allElements = document.querySelectorAll("#selecto .image.keyframes");
                 // give all elements selected class
                 allElements.forEach(el => {
                     el.classList.add("selected");
@@ -83,29 +84,8 @@ export default function Keyframes({ handleOpen }) {
     }
 
     return (
-        <div className="relative elements overflow-y-scroll w-full container images" ref={ref} tabIndex={0}>
-            <Selecto
-                ref={selectoRef}
-                dragContainer={".container"}
-                selectableTargets={["#selecto .image"]}
-                onSelect={e => {
-                    e.added.forEach(el => {
-                        el.classList.add("selected");
-                    });
-                    e.removed.forEach(el => {
-                        el.classList.remove("selected");
-                    });
-                }}
-                hitRate={0}
-                selectByClick={true}
-                selectFromInside={true}
-                continueSelect={false}
-                continueSelectWithoutDeselect={true}
-                toggleContinueSelect={"shift"}
-                toggleContinueSelectWithoutDeselect={[["ctrl"], ["meta"]]}
-                ratio={0}
-            ></Selecto>
-            <Box className="sticky flex items-center">
+        <div className="relative flex flex-col elements w-full container images" >
+            <Box className="sticky flex items-center h-fit">
                 <Button className="h-[56px]"
                     disabled={undoArray.length === 0}
                     onClick={undo}>↩️</Button>
@@ -145,30 +125,53 @@ export default function Keyframes({ handleOpen }) {
                 </FormControl>
                 <QuestionsReader />
             </Box>
-            <div className="grid grid-cols-5 p-4" id="selecto">
-                {images?.map((image) => {
-                    const src = getImage(blobs, getImageKey(image.key, image.video_id, image.group_id));
-                    return (
-                        <figure className="relative image p-2 hover:bg-[rgba(68,171,255,0.15)] [&_*]:select-none [&_*]:pointer-events-none keyframes"
-                            key={`${image.key}-${image.video_id}-${image.group_id}`}
-                            data-key={`${image.key}-${image.video_id}-${image.group_id}`}
-                            onDoubleClick={() => handleOpen(image)}
-                            data-container={"images"}
-                        >
-                            <img src={src}
-                            // onError={(e) => {
-                            //     e.target.src = ""
-                            // }}
-                            />
-                            <figcaption className="flex flex-row justify-between ">
-                                <Typography variant="caption" className=" text-center text-black bg-opacity-50 p-1 rounded">
-                                    L{image.group_id} / V{image.video_id} / {image.key}
-                                </Typography>
-                                <Typography className={clsx(image.confidence > 0.95 ? "text-blue-300" : image.confidence > 0.9 ? "text-yellow-500" : image.confidence > 0.8 ? "text-gray-400" : image.confidence > 0.7 ? "text-orange-900" : "")}>{image.confidence}</Typography>
-                            </figcaption>
-                        </figure>
-                    )
-                })}
+            <div className="relative overflow-y-scroll flex-1 container " ref={ref} tabIndex={0}>
+                <Selecto
+                    ref={selectoRef}
+                    dragContainer={".container"}
+                    selectableTargets={["#selecto .image"]}
+                    onSelect={e => {
+                        e.added.forEach(el => {
+                            el.classList.add("selected");
+                        });
+                        e.removed.forEach(el => {
+                            el.classList.remove("selected");
+                        });
+                    }}
+                    hitRate={0}
+                    selectByClick={true}
+                    selectFromInside={true}
+                    continueSelect={false}
+                    continueSelectWithoutDeselect={true}
+                    toggleContinueSelect={"shift"}
+                    toggleContinueSelectWithoutDeselect={[["ctrl"], ["meta"]]}
+                    ratio={0}
+                ></Selecto>
+                <div className="grid grid-cols-5 p-4" id="selecto" >
+                    {images?.map((image) => {
+                        const src = getImage(blobs, getImageKey(image.key, image.video_id, image.group_id));
+                        return (
+                            <figure className="relative image p-2 hover:bg-[rgba(68,171,255,0.15)] [&_*]:select-none [&_*]:pointer-events-none keyframes"
+                                key={`${image.key}-${image.video_id}-${image.group_id}`}
+                                data-key={`${image.key}-${image.video_id}-${image.group_id}`}
+                                onDoubleClick={() => handleOpen(image)}
+                                data-container={"images"}
+                            >
+                                <img src={src}
+                                // onError={(e) => {
+                                //     e.target.src = ""
+                                // }}
+                                />
+                                <figcaption className="flex flex-row justify-between ">
+                                    <Typography variant="caption" className=" text-center text-black bg-opacity-50 p-1 rounded">
+                                        L{image.group_id} / V{image.video_id} / {image.key}
+                                    </Typography>
+                                    <Typography className={clsx(image.confidence > 0.95 ? "text-blue-300" : image.confidence > 0.9 ? "text-yellow-500" : image.confidence > 0.8 ? "text-gray-400" : image.confidence > 0.7 ? "text-orange-900" : "")}>{image.confidence}</Typography>
+                                </figcaption>
+                            </figure>
+                        )
+                    })}
+                </div>
             </div>
         </div>
     )

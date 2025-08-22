@@ -38,7 +38,7 @@ export default function ContextMenu({
             id: getId(),
             type: 'text',
             position: screenToFlowPosition({ x: e.clientX - 50, y: e.clientY - 50 }),
-            data: { category: 'keyframe_tag_filtering', text: 'Text', select: [], weight: 1 },
+            data: { category: 'ocr_fuzzy_search', text: 'Text', select: [], weight: 1 },
         });
     }, [screenToFlowPosition, getId, addNodes]);
 

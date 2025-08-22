@@ -9,9 +9,9 @@ import './resizer.css'
 
 export default memo(function Home() {
     const { getCurrentQuestion } = useStore();
-    const exportQuestions = () => {
+    const exportQuestions = (e) => {
         const currentQuestion = getCurrentQuestion();
-
+        console.log(currentQuestion)
         // data.map((item) => {
         const blob = new Blob([JSON.stringify(currentQuestion, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -25,7 +25,10 @@ export default memo(function Home() {
 
     return (
         <>
-            <SplitPane split="vertical" defaultSize={700}
+            <SplitPane split="vertical" 
+                defaultSize={parseInt(localStorage.getItem('splitVer'), 10) || 600}
+                onChange={(size) => localStorage.setItem('splitVer', size)}
+
                 paneStyle={{ overflow: "auto" }} 
                 resizerStyle={{
                     background: '#e5e7eb', width: '4px', cursor: 'col-resize', borderLeft: '1px solid #d1d5db', borderRight: '1px solid #d1d5db'
@@ -49,3 +52,28 @@ export default memo(function Home() {
         </>
     )
 });
+
+
+
+// sửa lại images không cần group, cần sắp xếp tay 😁😀😶🤩🥰😲🐱‍👓🐱‍🐉👾
+
+// searchimages cần không được sắp xếp, sortGroup theo thứ tự 😁😀😶🤩🥰😲🐱‍👓🐱‍🐉👾
+
+// querybuilder sửa lại không cần tag 😁😀😶🤩🥰😲🐱‍👓🐱‍🐉👾
+
+// sửa ctrl a hư 😁😀😶🤩🥰😲🐱‍👓🐱‍🐉👾
+
+// sửa scroll images hư 😁😀😶🤩🥰😲🐱‍👓🐱‍🐉👾
+
+// sửa autozoom 😁😀😶🤩🥰😲🐱‍👓🐱‍🐉👾
+
+// sửa lại sort là group để trong global -> sửa undo 😁😀😶🤩🥰😲🐱‍👓🐱‍🐉👾
+
+
+// sửa xuất 
+
+// sửa lại api model 
+
+// thêm serve ảnh test
+
+// QOL: sao lưu luôn sort state vào undo

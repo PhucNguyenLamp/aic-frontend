@@ -1,18 +1,60 @@
 import { useState, useEffect, useRef, useContext } from "react";
-import { Box, Button, Card, Fab, FormControl, InputLabel, Menu, MenuItem, Select, Slider, Typography } from "@mui/material";
+import { Box, Button, Card, Fab, FormControl, InputLabel, Menu, MenuItem, Select, Slider, Typography, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
 import { getImage, getImageKey, imagePath } from "@/utils/imagePath";
 import clsx from "clsx";
 import Selecto from "react-selecto";
 import { useStore } from "@/stores/questions";
 import { useStoreImages } from "@/stores/blobs";
 import { get } from "idb-keyval";
+import useLocalStorageState from "use-local-storage-state";
 
 export default function Videos({ handleOpen }) {
-  const [sortOption, setSortOption] = useState("d");
-  const { getCurrentQuestion, setCurrentQuestion, updateQuestionField, questions, currentQuestionId, undo, redo } = useStore();
+  // const [sortOption, setSortOption] = useLocalStorageState("sortOption", {defaultValue: "g"}); // d: default g: groupvid hc: high confidence
+
+  // const [groupOption, setGroupOption] = useLocalStorageState("groupOption", {defaultValue: "n"}); // n: nogroup g: group hc: high confidence
+  const { getCurrentQuestion, setCurrentQuestion, updateQuestionField, questions, currentQuestionId, undo, redo, sortOption, setSortOption, groupOption, setGroupOption } = useStore();
   const currentQuestion = getCurrentQuestion();
   const images = currentQuestion.images;
   const searchImages = currentQuestion.searchImages;
+
+  const map = new Map()
+
+  searchImages.forEach(img => {
+    let group;
+    if (groupOption === "g") {
+      group = img.group_id;
+    } else if (groupOption === "hc") {
+      group = img.confidence > 0.95 ? "Very High" : img.confidence > 0.9 ? "High" : img.confidence > 0.8 ? "Good" : img.confidence > 0.7 ? "Average" : "Low";
+    }
+    if (!map.has(group)) {
+      map.set(group, []);
+    }
+    map.get(group).push(img);
+  })
+
+  const groupSearchImagesSortFunction = (a, b) => {
+    const aGroup = a.group;
+    const bGroup = b.group;
+    if (groupOption === "g") {
+      return aGroup.localeCompare(bGroup);
+    } else if (groupOption === "hc") {
+      return -rank[aGroup] + rank[bGroup];
+    } else
+      return 0;
+  }
+
+  const sortImagesFunction = (a, b) => {
+    if (sortOption === "g") {
+      return a.group_id - b.group_id || a.video_id - b.video_id || a.key - b.key;
+    } else if (sortOption === "hc") {
+      return b.confidence - a.confidence;
+    } else
+      return 0;
+  }
+
+
+  let groupedSearchImages = Array.from(map.entries()).map(([group, images]) => ({ group, images: images.sort(sortImagesFunction) })).sort(groupSearchImagesSortFunction);
+
   const undoArray = currentQuestion.undoSearchArray;
   const redoArray = currentQuestion.redoSearchArray;
 
@@ -27,7 +69,7 @@ export default function Videos({ handleOpen }) {
     async function loadBlobs() {
       const urls = {};
       const uniqueMap = new Map();
-       [...searchImages, ...images].forEach(img => {
+      [...searchImages, ...images].forEach(img => {
         const imageKey = getImageKey(img.key, img.video_id, img.group_id);
         if (!uniqueMap.has(imageKey)) uniqueMap.set(imageKey, img);
       });
@@ -53,24 +95,13 @@ export default function Videos({ handleOpen }) {
 
   const selectoRef = useRef(null);
 
-  const sortImages = (sortOption) => {
-    const newSortedImages = [...searchImages].sort((a, b) => {
-      if (sortOption === "g") {
-        return a.group_id - b.group_id || a.video_id - b.video_id || a.key - b.key;
-      } else if (sortOption === "hc") {
-        return b.confidence - a.confidence;
-      } else
-        return 0;
-    });
-    updateQuestionField({ 'searchImages': newSortedImages });
-  }
 
   useEffect(() => {
     const handleKeyDown = (e) => {
       const isFocusedInside = ref.current && (ref.current === document.activeElement || ref.current.contains(document.activeElement));
       if (!isFocusedInside) return;
 
-      if (e.keyCode == 46) {
+      if (e.keyCode == 46 || e.keyCode == 8 || e.key.toLowerCase() == "d") {
         const selectedElements = document.querySelectorAll("#selecto .image.selected");
         if (!selectedElements.length) return;
         // delete selected elements by sorting them by key
@@ -85,6 +116,7 @@ export default function Videos({ handleOpen }) {
 
       // control + a, select all
       if (e.ctrlKey && e.key.toLowerCase() === "a") {
+        console.log("SEARCH IMAGES RAN")
         e.preventDefault();
         const allElements = document.querySelectorAll("#selecto .image.search");
         // give all elements selected class
@@ -153,10 +185,10 @@ export default function Videos({ handleOpen }) {
       const targetKey = currentElementMouseOn.getAttribute("data-key");
       // if (!targetKey) return;
       // nếu không có thì append vào cái cuối cùng
-      // TODO: outside mode
       // TODO: KIỂM TRA XEM CÓ BỊ TRÙNG KO 
       if (!targetKey) {
         if (mode === "same") {
+          if (sourceContainer == "searchImages") return;
           const remainingImages = sourceContainerData.filter(img => !selectedKeys.includes(`${img.key}-${img.video_id}-${img.group_id}`));
           const selectedImages = sourceContainerData.filter(img => selectedKeys.includes(`${img.key}-${img.video_id}-${img.group_id}`));
           const newImages = [
@@ -188,7 +220,7 @@ export default function Videos({ handleOpen }) {
           `${img.key}-${img.video_id}-${img.group_id}` === targetKey
         );
         if (mode === "same") {
-
+          if (sourceContainer == "searchImages") return;
           const remainingImages = sourceContainerData.filter(img =>
             !selectedKeys.includes(`${img.key}-${img.video_id}-${img.group_id}`)
           );
@@ -261,75 +293,138 @@ export default function Videos({ handleOpen }) {
   }, [searchImages, undoArray, redoArray]);
 
   return (
-    <div className="relative elements overflow-y-scroll w-full h-full container searchImages" ref={ref} tabIndex={0}>
-      <Selecto
-        ref={selectoRef}
-        dragContainer={".container"}
-        selectableTargets={["#selecto .image"]}
-        onSelect={e => {
-          e.added.forEach(el => {
-            el.classList.add("selected");
-          });
-          e.removed.forEach(el => {
-            el.classList.remove("selected");
-          });
-        }}
-        hitRate={0}
-        selectByClick={true}
-        selectFromInside={true}
-        continueSelect={false}
-        continueSelectWithoutDeselect={true}
-        toggleContinueSelect={"shift"}
-        toggleContinueSelectWithoutDeselect={[["ctrl"], ["meta"]]}
-        ratio={0}
-      ></Selecto>
-      <Box className="sticky flex items-center">
-        <Button className="h-[56px]"
+    <div className="relative flex flex-col elements w-full h-full searchImages"  >
+      <Box className="sticky flex items-center h-fit">
+        {/* <Button className="h-[56px]"
           disabled={undoArray?.length === 0}
           onClick={undo}>↩️</Button>
         <Button className="h-[56px]"
           disabled={redoArray?.length === 0}
-          onClick={redo}>↪️</Button>
+          onClick={redo}>↪️</Button> */}
         <Select
           value={sortOption}
           label="Sort By"
           onChange={(e) => {
             const sortOption = e.target.value;
             setSortOption(sortOption);
-            sortImages(sortOption);
+            // sortImages(sortOption);
           }}
         >
-          <MenuItem value="d">Default</MenuItem>
+          {/* <MenuItem value="d">Default</MenuItem> */}
+          <MenuItem value="g">Name</MenuItem>
+          <MenuItem value="hc">High Confidence</MenuItem>
+        </Select>
+        <Select
+          value={groupOption}
+          label="Group By"
+          onChange={(e) => {
+            const groupOption = e.target.value;
+            setGroupOption(groupOption);
+            // groupImages(groupOption);
+          }}
+        >
+          <MenuItem value="n">None</MenuItem>
           <MenuItem value="g">Group</MenuItem>
           <MenuItem value="hc">High Confidence</MenuItem>
         </Select>
       </Box>
-      <div className="grid grid-cols-5 gap-4 p-4 " id="selecto">
-        {searchImages?.map((image) => {
-          const src = getImage(blobs, getImageKey(image.key, image.video_id, image.group_id));
-          return (
-            <figure className="relative image p-2 hover:bg-[rgba(68,171,255,0.15)] [&_*]:select-none [&_*]:pointer-events-none search"
-              key={`${image.key}-${image.video_id}-${image.group_id}`}
-              data-key={`${image.key}-${image.video_id}-${image.group_id}`}
-              data-container={"searchImages"}
-              onDoubleClick={() => handleOpen(image)}
-            >
-              <img src={src}
-              // onError={(e) => {
-              //     e.target.src = ""
-              // }}
-              />
-              <figcaption className="flex flex-row justify-between ">
-                <Typography variant="caption" className=" text-center text-black bg-opacity-50 p-1 rounded">
-                  L{image.group_id} / V{image.video_id} / {image.key}
-                </Typography>
-                <Typography className={clsx(image.confidence > 0.95 ? "text-blue-300" : image.confidence > 0.9 ? "text-yellow-500" : image.confidence > 0.8 ? "text-gray-400" : image.confidence > 0.7 ? "text-orange-900" : "")}>{image.confidence}</Typography>
-              </figcaption>
-            </figure>
-          )
-        })}
+      <div className="relative overflow-y-scroll flex-1 container " ref={ref} tabIndex={0}>
+        <Selecto
+          ref={selectoRef}
+          dragContainer={".container"}
+          selectableTargets={["#selecto .image"]}
+          onSelect={e => {
+            e.added.forEach(el => {
+              el.classList.add("selected");
+            });
+            e.removed.forEach(el => {
+              el.classList.remove("selected");
+            });
+          }}
+          hitRate={0}
+          selectByClick={true}
+          selectFromInside={true}
+          continueSelect={false}
+          continueSelectWithoutDeselect={true}
+          toggleContinueSelect={"shift"}
+          toggleContinueSelectWithoutDeselect={[["ctrl"], ["meta"]]}
+          ratio={0}
+          // scrollOptions={{ container: ref.current, threshold: 30, speed: 15 }}
+          innerScrollOptions={{ container: ref.current, threshold: 30, speed: 15 }} // might fix later
+        ></Selecto>
+
+        <div className={clsx("grid-cols-5 gap-4 p-4", { "grid": groupOption === "n" })} id="selecto">
+          {groupOption === "n" ? searchImages?.map((image) => {
+            const src = getImage(blobs, getImageKey(image.key, image.video_id, image.group_id));
+            return (
+              <figure className="relative image p-2 hover:bg-[rgba(68,171,255,0.15)] [&_*]:select-none [&_*]:pointer-events-none search"
+                key={`${image.key}-${image.video_id}-${image.group_id}`}
+                data-key={`${image.key}-${image.video_id}-${image.group_id}`}
+                data-container={"searchImages"}
+                onDoubleClick={() => handleOpen(image)}
+              >
+                <img src={src}
+                // onError={(e) => {
+                //     e.target.src = ""
+                // }}
+                />
+                <figcaption className="flex flex-row justify-between ">
+                  <Typography variant="caption" className=" text-center text-black bg-opacity-50 p-1 rounded">
+                    L{image.group_id} / V{image.video_id} / {image.key}
+                  </Typography>
+                  <Typography className={clsx(image.confidence > 0.95 ? "text-blue-300" : image.confidence > 0.9 ? "text-yellow-500" : image.confidence > 0.8 ? "text-gray-400" : image.confidence > 0.7 ? "text-orange-900" : "")}>{image.confidence}</Typography>
+                </figcaption>
+              </figure>
+            )
+          })
+            :
+            groupedSearchImages?.map((image) => {
+              return (
+                <Accordion key={image.group}>
+                  <AccordionSummary>
+                    {image.group}
+                  </AccordionSummary>
+                  <AccordionDetails className="grid grid-cols-5 p-4 max-h-[400px] overflow-auto" id="selecto">
+                    {
+                      image.images.map((img) => {
+                        const src = getImage(blobs, getImageKey(img.key, img.video_id, img.group_id));
+                        return (
+                          <figure className="relative image p-2 hover:bg-[rgba(68,171,255,0.15)] [&_*]:select-none [&_*]:pointer-events-none search"
+                            key={`${img.key}-${img.video_id}-${img.group_id}`}
+                            data-key={`${img.key}-${img.video_id}-${img.group_id}`}
+                            data-container={"searchImages"}
+                            onDoubleClick={() => handleOpen(img)}
+                          >
+                            <img src={src}
+                            // onError={(e) => {
+                            //     e.target.src = ""
+                            // }}
+                            />
+                            <figcaption className="flex flex-row justify-between ">
+                              <Typography variant="caption" className=" text-center text-black bg-opacity-50 p-1 rounded">
+                                L{img.group_id} / V{img.video_id} / {img.key}
+                              </Typography>
+                              <Typography className={clsx(img.confidence > 0.95 ? "text-blue-300" : img.confidence > 0.9 ? "text-yellow-500" : img.confidence > 0.8 ? "text-gray-400" : img.confidence > 0.7 ? "text-orange-900" : "")}>{img.confidence}</Typography>
+                            </figcaption>
+                          </figure>
+                        )
+                      })
+                    }
+                  </AccordionDetails>
+                </Accordion>
+              )
+            })
+          }
+        </div>
       </div>
     </div>
   )
 }
 
+const rank = {
+  "Very High": 5,
+  "High": 4,
+  "Good": 3,
+  "Average": 2,
+  "Low": 1,
+};

@@ -88,7 +88,7 @@ export const getVideoByGroupVideoId = async (
 };
 
 export const getHistory = async () => {
-    console.log("GET HISTORY")
+    // console.log("GET HISTORY")
     const mockCall = Promise.resolve([
         {
             questionName: "1",
@@ -155,7 +155,7 @@ export const getHistory = async () => {
 
 export const getHistoryId = async (id) => {
     // id is timestamp
-    console.log("GET SPECIFIC HISTORY")
+    // console.log("GET SPECIFIC HISTORY")
     const mockCall = Promise.resolve({
         questionName: "1",
         timestamp: "8:33pm 20/08/2025",

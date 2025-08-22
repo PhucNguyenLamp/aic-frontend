@@ -14,7 +14,7 @@ export function getImageKey(id, videoid, groupid){
 }
 
 export function getImage(blobKeyMap, key){
-    console.log(blobKeyMap)
-    console.log(key)
+    // console.log(blobKeyMap)
+    // console.log(key)
     return blobKeyMap[key] || imagePath(key);
 }
