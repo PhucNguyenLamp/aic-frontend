@@ -35,8 +35,9 @@ export default function Videos({ handleOpen }) {
   const groupSearchImagesSortFunction = (a, b) => {
     const aGroup = a.group;
     const bGroup = b.group;
+    console.log(aGroup, bGroup)
     if (groupOption === "g") {
-      return aGroup.localeCompare(bGroup);
+      return aGroup < bGroup;
     } else if (groupOption === "hc") {
       return -rank[aGroup] + rank[bGroup];
     } else

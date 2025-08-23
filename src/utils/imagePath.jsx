@@ -1,4 +1,6 @@
+import path from 'path'
 import { get } from "idb-keyval";
+const VIDEOS_URL = import.meta.env.VITE_VIDEOS_URL || 'http://localhost:3000';
 
 export function imagePath(key){
     const [id, videoid, groupid] = key.split("-");
@@ -6,7 +8,13 @@ export function imagePath(key){
 }
 
 export function videoPath(videoid, groupid) {
-    return `/test/video/L${String(groupid).padStart(2, '0')}/V${String(videoid).padStart(3, '0')}.mp4`;
+    if (!videoid || !groupid) return null;
+    const paddedVideoId = videoid.toString().padStart(3, "0");
+    const paddedGroupId = groupid.toString().padStart(2, "0");
+
+    const url = `${VIDEOS_URL}/L${paddedGroupId}/V${paddedVideoId}.mp4`;
+    console.log(url)
+    return url;
 }
 
 export function getImageKey(id, videoid, groupid){

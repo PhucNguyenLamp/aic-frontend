@@ -9,12 +9,31 @@ import { searchKeyframes } from '@/api/services/query.jsx';
 
 const Queries = memo(function Queries() {
 
-    const { updateQuestionField } = useStore();
+    const { updateQuestionField, getCurrentQuestion } = useStore();
 
     const queryClient = useQueryClient();
 
     const handleSubmit = async () => {
-        const data = await searchKeyframes(); // searchImages
+        const currentQuestion = getCurrentQuestion();
+        const nodes = [...currentQuestion.nodes].map(node => {
+            return {
+                id: node.id,
+                data: node.data,
+            }
+        })
+        let edges = [...currentQuestion.edges].map(edge => {
+            return {
+                id: edge.id,
+                source: edge.source,
+                target: edge.target,
+            }
+        })
+        const payload = {
+            nodes,
+            edges
+        }
+        console.log("Submitting payload:", payload);
+        const data = await searchKeyframes(payload); // searchImages
         // then invalidate queries
         queryClient.invalidateQueries(['history']);
         updateQuestionField({
