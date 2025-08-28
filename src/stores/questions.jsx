@@ -1,14 +1,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { applyNodeChanges, applyEdgeChanges } from '@xyflow/react'
 
 const defaultQuestion = {
     questionName: 'default',
     question: 'default',
     images: [],
     searchImages: [],
-    nodes: [],
-    edges: [],
+    nodes: [], // DEPRECATED
+    edges: [], // DEPRECATED
     undoArray: [],
     redoArray: [],
     undoSearchArray: [],
@@ -22,6 +21,10 @@ export const useStore = create(
         questions: { default: { ...defaultQuestion } },
         id: 1,
         fetched: false,
+
+        searchQuestions: [],
+        setSearchQuestions: (questions) => set({ searchQuestions: questions }),
+
         getId: () => {
             set((state) => ({ id: state.id + 1 }));
             return get().id.toString();

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useContext } from "react";
-import { Box, Button, Card, Fab, FormControl, InputLabel, Menu, MenuItem, Select, Slider, Typography } from "@mui/material";
-import { getImage, getImageKey, imagePath } from "@/utils/imagePath";
+import { Box, Button, Card, Fab, FormControl, Input, InputLabel, Menu, MenuItem, Paper, Select, Slider, TextField, Typography } from "@mui/material";
+import { getChainImagesKey, getImage, getImageKey, getImageKey_, imagePath } from "@/utils/imagePath";
 import clsx from "clsx";
 import Selecto from "react-selecto";
 import QuestionsReader from "./QuestionsReader";
@@ -12,19 +12,25 @@ export default function Keyframes({ handleOpen }) {
     // const [sortOption, setSortOption] = useState("d");
     const { getCurrentQuestion, setCurrentQuestion, updateQuestionField, questions, currentQuestionId, undo, redo, imagesSortOption: sortOption, setImagesSortOption: setSortOption } = useStore();
     const { blobs, setBlob } = useStoreImages();
-    
+
     const currentQuestion = getCurrentQuestion();
     const images = currentQuestion.images;
+
+    const imagesMode = images.length == 0 ? "both" : Array.isArray(images?.[0]) ? "multiple" : "single";
+
     const undoArray = [...currentQuestion.undoArray];
     const redoArray = [...currentQuestion.redoArray];
 
     const ref = useRef(null);
 
+    let getKey = getImageKey_;
+    if (imagesMode == "multiple") getKey = getChainImagesKey;
+
     useEffect(() => {
         const handleKeyDown = (e) => {
             const isFocusedInside = ref.current && (ref.current === document.activeElement || ref.current.contains(document.activeElement));
             if (!isFocusedInside) return;
-            
+
             if (e.keyCode == 46 || e.keyCode == 8 || e.key.toLowerCase() == "d") {
                 const selectedElements = document.querySelectorAll("#selecto .image.selected");
                 if (!selectedElements.length) return;
@@ -32,7 +38,7 @@ export default function Keyframes({ handleOpen }) {
                 const selectedKeys = Array.from(selectedElements).map((el) => {
                     return el.getAttribute("data-key");
                 });
-                const newSortedImages = images.filter(image => !selectedKeys.includes(`${image.key}-${image.video_id}-${image.group_id}`));
+                const newSortedImages = images.filter(image => !selectedKeys.includes(getKey(image)));
                 updateQuestionField({
                     'images': newSortedImages,
                 });
@@ -92,7 +98,7 @@ export default function Keyframes({ handleOpen }) {
                 <Button className="h-[56px]"
                     disabled={redoArray.length === 0}
                     onClick={redo}>↪️</Button>
-                <Select
+                {/* <Select
                     value={sortOption}
                     label="Sort By"
                     onChange={(e) => {
@@ -104,7 +110,7 @@ export default function Keyframes({ handleOpen }) {
                     <MenuItem value="d">Default</MenuItem>
                     <MenuItem value="g">Group</MenuItem>
                     <MenuItem value="hc">High Confidence</MenuItem>
-                </Select>
+                </Select> */}
                 <FormControl className="max-w-[130px]" fullWidth>
                     <Select
                         labelId="question-select-label"
@@ -124,8 +130,10 @@ export default function Keyframes({ handleOpen }) {
                     </Select>
                 </FormControl>
                 <QuestionsReader />
+                <TextField id="outlined-basic" label="Answer" variant="outlined" />
+
             </Box>
-            <div className="relative overflow-y-scroll flex-1 container " ref={ref} tabIndex={0}>
+            <div className={clsx("relative overflow-y-scroll space-y-2 h-full container", imagesMode == "multiple" && "p-3")} ref={ref} tabIndex={0}>
                 <Selecto
                     ref={selectoRef}
                     dragContainer={".container"}
@@ -147,30 +155,62 @@ export default function Keyframes({ handleOpen }) {
                     toggleContinueSelectWithoutDeselect={[["ctrl"], ["meta"]]}
                     ratio={0}
                 ></Selecto>
-                <div className="grid grid-cols-5 p-4" id="selecto" >
-                    {images?.map((image) => {
-                        const src = getImage(blobs, getImageKey(image.key, image.video_id, image.group_id));
-                        return (
-                            <figure className="relative image p-2 hover:bg-[rgba(68,171,255,0.15)] [&_*]:select-none [&_*]:pointer-events-none keyframes"
-                                key={`${image.key}-${image.video_id}-${image.group_id}`}
-                                data-key={`${image.key}-${image.video_id}-${image.group_id}`}
-                                onDoubleClick={() => handleOpen(image)}
-                                data-container={"images"}
-                            >
-                                <img src={src}
-                                // onError={(e) => {
-                                //     e.target.src = ""
-                                // }}
-                                />
-                                <figcaption className="flex flex-row justify-between ">
-                                    <Typography variant="caption" className=" text-center text-black bg-opacity-50 p-1 rounded">
-                                        L{image.group_id} / V{image.video_id} / {image.key}
-                                    </Typography>
-                                    <Typography className={clsx(image.confidence > 0.95 ? "text-blue-300" : image.confidence > 0.9 ? "text-yellow-500" : image.confidence > 0.8 ? "text-gray-400" : image.confidence > 0.7 ? "text-orange-900" : "")}>{image.confidence}</Typography>
-                                </figcaption>
-                            </figure>
-                        )
-                    })}
+                <div className={imagesMode == "single" ? "grid grid-cols-5 p-4" : "space-y-2"} id="selecto" >
+                    {
+                        imagesMode == "single" ?
+                            images?.map((image) => {
+                                const src = getImage(blobs, getImageKey(image.key, image.video_id, image.group_id));
+                                return (
+                                    <figure className="relative image p-2 hover:bg-[rgba(68,171,255,0.15)] [&_*]:select-none [&_*]:pointer-events-none keyframes"
+                                        key={`${image.key}-${image.video_id}-${image.group_id}`}
+                                        data-key={`${image.key}-${image.video_id}-${image.group_id}`}
+                                        onDoubleClick={() => handleOpen(image)}
+                                        data-container={"images"}
+                                    >
+                                        <img src={src}
+                                        // onError={(e) => {
+                                        //     e.target.src = ""
+                                        // }}
+                                        />
+                                        <figcaption className="flex flex-row justify-between ">
+                                            <Typography variant="caption" className=" text-center text-black bg-opacity-50 p-1 rounded">
+                                                L{image.group_id} / V{image.video_id} / {image.key}
+                                            </Typography>
+                                            <Typography className={clsx(image.confidence > 0.95 ? "text-blue-300" : image.confidence > 0.9 ? "text-yellow-500" : image.confidence > 0.8 ? "text-gray-400" : image.confidence > 0.7 ? "text-orange-900" : "")}>{image.confidence}</Typography>
+                                        </figcaption>
+                                    </figure>
+                                )
+                            }) :
+                            images?.map((imageChain, index) => {
+                                return (
+                                    <Paper key={index} className="flex flex-row justify-between image keyframes hover:!bg-[rgba(68,171,255,0.15)]"
+                                        data-key={getChainImagesKey(imageChain)}
+                                        data-container={"images"}
+                                    >
+                                        {
+                                            imageChain.map((image) => {
+                                                const src = getImage(blobs, getImageKey(image.key, image.video_id, image.group_id));
+                                                return (
+                                                    <figure className="relative p-2 [&_*]:select-none [&_*]:pointer-events-none"
+                                                        key={`${image.key}-${image.video_id}-${image.group_id}`}
+                                                        onDoubleClick={() => handleOpen(image)}
+                                                    >
+                                                        <img src={src}
+                                                        />
+                                                        <figcaption className="flex flex-row justify-between ">
+                                                            <Typography variant="caption" className=" text-center text-black bg-opacity-50 p-1 rounded">
+                                                                L{image.group_id} / V{image.video_id} / {image.key}
+                                                            </Typography>
+                                                            <Typography className={clsx(image.confidence > 0.95 ? "text-blue-300" : image.confidence > 0.9 ? "text-yellow-500" : image.confidence > 0.8 ? "text-gray-400" : image.confidence > 0.7 ? "text-orange-900" : "")}>{image.confidence}</Typography>
+                                                        </figcaption>
+                                                    </figure>
+                                                )
+                                            })
+                                        }
+                                    </Paper>)
+                            })
+
+                    }
                 </div>
             </div>
         </div>

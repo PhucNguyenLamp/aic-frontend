@@ -21,6 +21,15 @@ export function getImageKey(id, videoid, groupid){
     return `${id}-${videoid}-${groupid}`;
 }
 
+export function getImageKey_(image){
+    return getImageKey(image.key, image.video_id, image.group_id);
+}
+
+export function getChainImagesKey(images){
+    const key = images.map(image => getImageKey(image.key, image.video_id, image.group_id)).join(",");
+    return key;
+}
+
 export function getImage(blobKeyMap, key){
     // console.log(blobKeyMap)
     // console.log(key)

@@ -14,43 +14,87 @@ export const searchKeyframes = async (payload) => {
     // }
 
     // return ví dụ
-    const mockCall = Promise.resolve([
-        {
-            confidence: 0.95,
-            key: 0,
-            video_id: 1,
-            group_id: 21,
-        },
-        {
-            confidence: 0.9,
-            key: 596,
-            video_id: 1,
-            group_id: 22,
-        },
-        {
-            confidence: 0.9,
-            key: 2444,
-            video_id: 1,
-            group_id: 23,
-        },
-        {
-            confidence: 0.9,
-            key: 29810,
-            video_id: 2,
-            group_id: 23,
-        },
-        {
-            confidence: 0.9,
-            key: 30444,
-            video_id: 3,
-            group_id: 23,
-        },
-        {
-            confidence: 0.8,
-            key: 399,
-            video_id: 1,
-            group_id: 30,
-        },
+    let mockCall;
+    if (payload.length === 1)
+        mockCall = Promise.resolve([
+            {
+                confidence: 0.95,
+                key: 0,
+                video_id: 1,
+                group_id: 21,
+            },
+            {
+                confidence: 0.9,
+                key: 596,
+                video_id: 1,
+                group_id: 22,
+            },
+            {
+                confidence: 0.9,
+                key: 2444,
+                video_id: 1,
+                group_id: 23,
+            },
+            {
+                confidence: 0.9,
+                key: 29810,
+                video_id: 2,
+                group_id: 23,
+            },
+            {
+                confidence: 0.9,
+                key: 30444,
+                video_id: 3,
+                group_id: 23,
+            },
+            {
+                confidence: 0.8,
+                key: 399,
+                video_id: 1,
+                group_id: 30,
+            },
+        ]);
+    else mockCall = Promise.resolve([
+        [
+            {
+                confidence: 0.95,
+                key: 0,
+                video_id: 1,
+                group_id: 21,
+            },
+            {
+                confidence: 0.9,
+                key: 595,
+                video_id: 1,
+                group_id: 22,
+            },
+            {
+                confidence: 0.9,
+                key: 2444,
+                video_id: 1,
+                group_id: 23,
+            }
+        ],
+        [
+            {
+                confidence: 0.95,
+                key: 0,
+                video_id: 1,
+                group_id: 21,
+            },
+            {
+                confidence: 0.9,
+                key: 596,
+                video_id: 1,
+                group_id: 22,
+            },
+            {
+                confidence: 0.9,
+                key: 2444,
+                video_id: 1,
+                group_id: 23,
+            }
+        ],
     ]);
     const data = await mockCall;
 
@@ -58,6 +102,7 @@ export const searchKeyframes = async (payload) => {
 };
 
 // lấy lịch sử
+
 export const getHistory = async () => {
     // return ví dụ
     const mockCall = Promise.resolve([
@@ -105,6 +150,7 @@ export const getHistory = async () => {
 };
 
 // lấy history cụ thể ví dụ
+
 export const getHistoryId = async (id) => {
     const mockCall = Promise.resolve({
         questionName: "1",
