@@ -22,8 +22,12 @@ export const useStore = create(
         id: 1,
         fetched: false,
 
+
         searchQuestions: [],
         setSearchQuestions: (questions) => set({ searchQuestions: questions }),
+
+        formField: {},
+        setFormField: (field) => set({ formField: { ...get().formField, ...field } }),
 
         getId: () => {
             set((state) => ({ id: state.id + 1 }));

@@ -3,9 +3,10 @@ import Button from '@mui/material/Button';
 import Modal from '@mui/material/Modal';
 import VideoJS from './VideoJS';
 import React, { useContext } from 'react';
-import { getImageKey, videoPath } from '@/utils/imagePath';
+import { getFps, getImageKey, videoPath } from '@/utils/imagePath';
 import { useStore } from '@/stores/questions';
 import { get, set } from 'idb-keyval';
+import { useStoreImages } from '@/stores/blobs';
 
 export default function VideoModal({ image, open, onClose }) {
     // const { undoRef, redoRef } = useContext(AppContext)
@@ -16,17 +17,21 @@ export default function VideoModal({ image, open, onClose }) {
     const playerRef = React.useRef(null);
     const intervalRef = React.useRef(null);
     const timeoutRef = React.useRef(null);
-    const fps = image?.fps || 25;
+    // console.log(image, "sfjikahfuia")
+    const videoid = `${image?.group_id}_${image?.video_id}.mp4`;
+    const fps = getFps(videoid) || 25;
     const frameDuration = 1 / fps;
 
-    const allTimeStamps = images?.map(img => img.video_id == image?.video_id && img.group_id == image?.group_id ? img.key : null).filter(Boolean);
-    const markers = allTimeStamps?.map((key) => ({
-        time: key * frameDuration,
-        text: `Frame ${key}`,
+    const keyframe_id = Number(image?.keyframe_id.split('_')[1]);
+    
+    const allTimeStamps = images?.map(img => img.video_id == image?.video_id && img.group_id == image?.group_id ? img.keyframe_id : null).filter(Boolean);
+    const markers = allTimeStamps?.map((keyframe_id) => ({
+        time: keyframe_id * frameDuration,
+        text: `Frame ${keyframe_id}`,
     }));
 
     // const startTime = Math.max(frameDuration * image?.key - 10, 0);
-    // const endTime = frameDuration * image?.key + 10;
+    // const endTime = frameDuration * image?.keyframe_id + 10;
     const [showFullTimeline, setShowFullTimeline] = React.useState(true);
     const videoJsOptions = {
         autoplay: false,
@@ -48,7 +53,7 @@ export default function VideoModal({ image, open, onClose }) {
 
     const handlePlayerReady = (player) => {
         playerRef.current = player;
-        const currentTime = image?.key * frameDuration;
+        const currentTime = keyframe_id * frameDuration;
         player.addClass('vjs-has-started');
         player.currentTime(currentTime);
         player.markers({
@@ -82,11 +87,13 @@ export default function VideoModal({ image, open, onClose }) {
         clearInterval(intervalRef.current);
     };
 
+    const { setBlob } = useStoreImages();
+
     const cutFrame = async () => {
         if (!playerRef.current) return;
 
         const currentTime = playerRef.current.currentTime();
-        const frameKey = Math.round(currentTime / frameDuration);
+        const keyframe_id = Math.round(currentTime / frameDuration);
 
         // Ensure video element is ready
         const video = playerRef.current.el().querySelector("video");
@@ -103,19 +110,19 @@ export default function VideoModal({ image, open, onClose }) {
         // Convert to WebP Blob
         canvas.toBlob(async (blob) => {
             if (!blob) return;
-            const blobKey = getImageKey(frameKey, image.video_id, image.group_id);
+            const blobKey = getImageKey(`keyframe_${keyframe_id}`, image.video_id, image.group_id);
             await set(blobKey, blob);
             // Update frontend state with blob URL
             const newImage = {
-                key: frameKey,
+                keyframe_id: `keyframe_${keyframe_id}`,
                 video_id: image.video_id,
                 group_id: image.group_id,
                 blobKey,
                 fps: fps,
-                confidence: 1.0, // because we picked this frame
+                score: 1.0, // because we picked this frame
             };
 
-
+            setBlob(blobKey, blob);
             // setSortedImages(prev => [...prev, newImage]);
             updateQuestionField({'images': [...images, newImage]});
             // undoRef.current.push(images);
@@ -129,12 +136,12 @@ export default function VideoModal({ image, open, onClose }) {
             if (!playerRef.current) return;
             if (e.key === 'ArrowLeft') stepFrame(-1);
             if (e.key === 'ArrowRight') stepFrame(1);
-            if (e.code === 'Space') {
-                e.preventDefault(); // Prevent page scroll
-                if (!playerRef.current) return;
-                const player = playerRef.current;
-                player.paused() ? player.play() : player.pause();
-            }
+            // if (e.code === 'Space') {
+            //     e.preventDefault(); // Prevent page scroll
+            //     if (!playerRef.current) return;
+            //     const player = playerRef.current;
+            //     player.paused() ? player.play() : player.pause();
+            // }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);

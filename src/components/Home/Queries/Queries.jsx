@@ -9,14 +9,14 @@ const defaultItem = {
     captionSearchText: "",
     captionSearchRRF: true,          // true = RRF, false = weighted
     captionSearchWeight: 0.1,
-    captionSearchTagBoostAlpha: 0.1,
+    captionSearchTagBoostAlpha: 0,
 
     captionSlider: 0.1,
     keyframeSlider: 0.1,
     OCRSlider: 0.1,
 
     keyframeSearchText: "",
-    keyframeSearchTagBoostAlpha: 0.1,
+    keyframeSearchTagBoostAlpha: 0,
     OCRSearchText: "",
 };
 
@@ -25,7 +25,7 @@ export default function Queries() {
         defaultValues: { queries: [defaultItem] },
     });
 
-    const { setSearchQuestions } = useStore();
+    const { setSearchQuestions, currentQuestionId, formField, setFormField } = useStore();
 
     const { fields, append, remove } = useFieldArray({
         control,
@@ -33,7 +33,10 @@ export default function Queries() {
     });
 
     const onSubmit = async (data) => {
-        const payload = data.queries;
+        const payload = {
+            currentQuestionId,
+            queries: data.queries
+        };
         const responseData = await searchKeyframes(payload);
         setSearchQuestions(responseData);
     };

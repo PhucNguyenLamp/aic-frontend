@@ -1,7 +1,6 @@
 import './App.css'
 import { useCallback, useContext } from 'react'
 import Home from '@/pages/Home'
-import { searchKeyframes } from '@/api/services/query';
 import { useStore } from './stores/questions';
 import {
   QueryClient,

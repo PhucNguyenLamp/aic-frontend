@@ -1,164 +1,135 @@
 import api from "../axios";
 
 export const searchKeyframes = async (payload) => {
-    // gửi payload {
-    //      nodes: []{
-    //      id: node.id,
-    //      data: node.data,
-    //  }
-    //     edges: []{
-    //      id: edge.id,
-    //      source: edge.source,
-    //      target: edge.target,
-    //  }
+    const queries = payload.queries;
+
+    // {
+    //     req: {
+    //         question_filename: str = Field(..., description = "Logical name used to group related searches")
+    //         keyframe: Optional[KeyframeQuery] = None
+    //         caption: Optional[CaptionQuery] = None
+    //         ocr: Optional[OCRQuery] = None
+    //     }
+    //     topk: TopKReturn = TopKReturn()
+    //     ctrl: {
+    //        fusion: {
+    //            w_visual: float = Field(default=0.5)
+    //            w_caption: float = Field(default=0.3)
+    //            w_ocr: float = Field(default=0.2)
+
+    //        }    
+    // }
     // }
 
-    // return ví dụ
-    let mockCall;
-    if (payload.length === 1)
-        mockCall = Promise.resolve([
-            {
-                confidence: 0.95,
-                key: 0,
-                video_id: 1,
-                group_id: 21,
-            },
-            {
-                confidence: 0.9,
-                key: 596,
-                video_id: 1,
-                group_id: 22,
-            },
-            {
-                confidence: 0.9,
-                key: 2444,
-                video_id: 1,
-                group_id: 23,
-            },
-            {
-                confidence: 0.9,
-                key: 29810,
-                video_id: 2,
-                group_id: 23,
-            },
-            {
-                confidence: 0.9,
-                key: 30444,
-                video_id: 3,
-                group_id: 23,
-            },
-            {
-                confidence: 0.8,
-                key: 399,
-                video_id: 1,
-                group_id: 30,
-            },
-        ]);
-    else mockCall = Promise.resolve([
-        [
-            {
-                confidence: 0.95,
-                key: 0,
-                video_id: 1,
-                group_id: 21,
-            },
-            {
-                confidence: 0.9,
-                key: 595,
-                video_id: 1,
-                group_id: 22,
-            },
-            {
-                confidence: 0.9,
-                key: 2444,
-                video_id: 1,
-                group_id: 23,
-            }
-        ],
-        [
-            {
-                confidence: 0.95,
-                key: 0,
-                video_id: 1,
-                group_id: 21,
-            },
-            {
-                confidence: 0.9,
-                key: 596,
-                video_id: 1,
-                group_id: 22,
-            },
-            {
-                confidence: 0.9,
-                key: 2444,
-                video_id: 1,
-                group_id: 23,
-            }
-        ],
-    ]);
-    const data = await mockCall;
+    let response;
 
-    return data;
+    if (queries.length === 1) {
+        const query = queries[0];
+        const request = {
+            req: {
+                question_filename: payload.currentQuestionId,
+                caption: {
+                    tag_boost_alpha: query.captionSearchTagBoostAlpha,
+                    text: query.captionSearchText,
+                    fusion: query.captionSearchRRF ? "rrf" : "weighted",
+                    weighted: query.captionSearchWeight,
+                },
+                keyframe: {
+                    text: query.keyframeSearchText,
+                    tag_boost_alpha: query.keyframeSearchTagBoostAlpha
+                },
+                ocr: {
+                    text: query.OCRSearchText
+                }
+            },
+            ctrl: {
+                fusion: {
+                    w_visual: query.keyframeSlider,
+                    w_caption: query.captionSlider,
+                    w_ocr: query.OCRSlider
+                }
+            }
+        }
+        response = await api.post("/search/single", request);
+        return response.data.fused;
+    } else {
+
+        const request = queries.map((query, index) => ({
+            event_order: index,
+            query: {
+            req: {
+                question_filename: payload.currentQuestionId,
+                caption: {
+                    tag_boost_alpha: query.captionSearchTagBoostAlpha,
+                    text: query.captionSearchText,
+                    fusion: query.captionSearchRRF ? "rrf" : "weighted",
+                    weighted: query.captionSearchWeight,
+                },
+                keyframe: {
+                    text: query.keyframeSearchText,
+                    tag_boost_alpha: query.keyframeSearchTagBoostAlpha
+                },
+                ocr: {
+                    text: query.OCRSearchText
+                }
+            },
+            ctrl: {
+                fusion: {
+                    w_visual: query.keyframeSlider,
+                    w_caption: query.captionSlider,
+                    w_ocr: query.OCRSlider
+                }
+            }
+        }}))
+        const events = { events: request }
+        response = await api.post("/search/trake", events);
+        return response.data.trake_paths.paths
+}
+
+
 };
 
 // lấy lịch sử
 
 export const getHistory = async () => {
     // return ví dụ
-    const mockCall = Promise.resolve([
-        {
-            questionName: "1",
-            timestamp: "8:33pm 20/08/2025",
-        },
-        {
-            questionName: "2",
-            timestamp: "7:29pm 20/08/2025",
-        },
-        {
-            questionName: "1",
-            timestamp: "7:00pm 20/08/2025",
-        },
-        {
-            questionName: "2",
-            timestamp: "6:29pm 20/08/2025",
-        },
-    ]);
-    const data = await mockCall;
+    let history = await api.get("/search/history")
+    history = history.data;
+    // const grouped = new Map();
 
-    const grouped = new Map();
+    // for (const item of data) {
+    //     if (!grouped.has(item.questionName)) {
+    //         grouped.set(item.questionName, []);
+    //     }
+    //     grouped.get(item.questionName).push(item);
+    // }
 
-    for (const item of data) {
-        if (!grouped.has(item.questionName)) {
-            grouped.set(item.questionName, []);
-        }
-        grouped.get(item.questionName).push(item);
-    }
-
-    const formatted = Array.from(grouped.entries()).map(([questionName, items]) => ({
+    const formatted = Object.entries(history).map(([questionName, historyItems]) => ({
         id: questionName,
         label: questionName,
-        children: items.map(({ timestamp, edges, nodes, searchImages }) => ({
+        children: historyItems.map(({ timestamp }) => ({
             id: timestamp,
-            label: timestamp,
-            edges,
-            nodes,
-            searchImages,
+            label: (new Date(timestamp)).toLocaleString(undefined, options),
         }))
-    }))
+    }));
 
     return formatted;
 };
 
 // lấy history cụ thể ví dụ
 
-export const getHistoryId = async (id) => {
-    const mockCall = Promise.resolve({
-        questionName: "1",
-        timestamp: "8:33pm 20/08/2025",
-        searchImages: [],
-        edges: [],
-        nodes: [],
-    });
-    const data = await mockCall;
-    return data;
+export const getHistoryId = async (timestamp, limit = 100) => {
+    const params = { timestamp, limit };
+    const data = await api.get("/search", { params });
+    return data.data;
+};
+
+
+const options = {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
 };

@@ -8,7 +8,8 @@ import { useQuery } from "@tanstack/react-query";
 
 
 export default function HistoryModal() {
-    const { questions, updateQuestionField, currentQuestionId, setCurrentQuestion, setQuestions, toggleFetched } = useStore();
+    const { questions,
+        updateQuestionField, currentQuestionId, setCurrentQuestion, setQuestions, toggleFetched, setSearchQuestions } = useStore();
     const [open, setOpen] = useState(false);
     const apiRef = useTreeViewApiRef();
 
@@ -17,28 +18,27 @@ export default function HistoryModal() {
         queryFn: getHistory,
     })
 
-    async function loadHistoryId(id) {
-        const history = await getHistoryId(id);
-        const { questionName, timestamp, searchImages, edges, nodes } = history;
-        setCurrentQuestion(questionName);
+
+    async function loadHistoryId(timeId) {
+        let history = await getHistoryId(timeId);
+        const { question_filename, timestamp, single_response, single_request } = history;
+
+        setCurrentQuestion(question_filename);
         updateQuestionField({
-            questionName,
-            timestamp,
-            searchImages,
-            edges,
-            nodes,
+            // question_filename, // not needed
+            // timestamp, // the fuck
+            // searchImages: single_response.fused,
+            single_request,
         });
+        setSearchQuestions(single_response.fused)
         toggleFetched();
     }
 
-    async function handleSelectedItemsChange(event, itemId) {
-        const parentId = apiRef.current?.getParentId(itemId)
+    async function handleSelectedItemsChange(event, timeId) {
+        const parentId = apiRef.current?.getParentId(timeId)
         if (!parentId) return;
-        await loadHistoryId(itemId)
+        await loadHistoryId(timeId)
     }
-
-    // function handleDelete(e, key) {
-    // }
 
 
     useEffect(() => {
@@ -76,42 +76,6 @@ export default function HistoryModal() {
         </div>
     );
 }
-
-const MUI_X_PRODUCTS = [
-    {
-        id: 'grid',
-        label: 'Data Grid',
-        children: [
-            { id: 'grid-community', label: '@mui/x-data-grid' },
-            { id: 'grid-pro', label: '@mui/x-data-grid-pro' },
-            { id: 'grid-premium', label: '@mui/x-data-grid-premium' },
-        ],
-    },
-    {
-        id: 'pickers',
-        label: 'Date and Time Pickers',
-        children: [
-            { id: 'pickers-community', label: '@mui/x-date-pickers' },
-            { id: 'pickers-pro', label: '@mui/x-date-pickers-pro' },
-        ],
-    },
-    {
-        id: 'charts',
-        label: 'Charts',
-        children: [
-            { id: 'charts-community', label: '@mui/x-charts' },
-            { id: 'charts-pro', label: '@mui/charts-pro' },
-        ],
-    },
-    {
-        id: 'tree-view',
-        label: 'Tree View',
-        children: [
-            { id: 'tree-view-community', label: '@mui/x-tree-view' },
-            { id: 'tree-view-pro', label: '@mui/x-tree-view-pro' },
-        ],
-    },
-];
 
 
 const style = {

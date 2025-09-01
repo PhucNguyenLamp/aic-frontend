@@ -9,15 +9,16 @@ import { get } from "idb-keyval";
 import useLocalStorageState from "use-local-storage-state";
 
 export default function Videos({ handleOpen }) {
-  // const [sortOption, setSortOption] = useLocalStorageState("sortOption", {defaultValue: "g"}); // d: default g: groupvid hc: high confidence
+  // const [sortOption, setSortOption] = useLocalStorageState("sortOption", {defaultValue: "g"}); // d: default g: groupvid hc: high score
 
-  // const [groupOption, setGroupOption] = useLocalStorageState("groupOption", {defaultValue: "n"}); // n: nogroup g: group hc: high confidence
+  // const [groupOption, setGroupOption] = useLocalStorageState("groupOption", {defaultValue: "n"}); // n: nogroup g: group hc: high score
   const { getCurrentQuestion, setCurrentQuestion, updateQuestionField, questions, currentQuestionId, undo, redo, sortOption, setSortOption, groupOption, setGroupOption, searchQuestions } = useStore();
   const currentQuestion = getCurrentQuestion();
   const images = currentQuestion.images;
   const searchImages = searchQuestions;
 
-  const searchMode = Array.isArray(searchImages?.[0]) ? "multiple" : "single";
+  // if searchImages.items exists then multiple
+  const searchMode = searchImages[0]?.items ? "multiple" : "single";
   let searchImagesChain = searchQuestions;
   let groupedSearchImagesChain = [];
 
@@ -26,19 +27,22 @@ export default function Videos({ handleOpen }) {
     searchImagesChain.forEach(imggroup => {
       let group;
       if (groupOption === "g") {
-        group = imggroup[0].group_id;
+        group = imggroup.items[0].group_id;
       } else if (groupOption === "hc") {
-        group = imggroup[0].confidence > 0.95 ? "Very High" : imggroup[0].confidence > 0.9 ? "High" : imggroup[0].confidence > 0.8 ? "Good" : imggroup[0].confidence > 0.7 ? "Average" : "Low";
+        group = imggroup.score > 0.95 ? "Very High" : imggroup.score > 0.9 ? "High" : imggroup.score > 0.8 ? "Good" : imggroup.score > 0.7 ? "Average" : "Low";
       }
       if (!map.has(group)) {
         map.set(group, []);
       }
-      map.get(group).push(imggroup);
+      map.get(group).push(imggroup.items);
     })
 
+
+    // console.log(map)
     const groupSearchChainImagesSortFunction = (a, b) => {
-      const aGroup = a[0].group;
-      const bGroup = b[0].group;
+      // console.log(a, b)
+      const aGroup = a.group;
+      const bGroup = b.group;
       if (groupOption === "g") {
         return aGroup < bGroup;
       } else if (groupOption === "hc") {
@@ -49,9 +53,9 @@ export default function Videos({ handleOpen }) {
 
     const sortChainImagesFunction = (a, b) => {
       if (sortOption === "g") {
-        return a[0].group_id - b[0].group_id || a[0].video_id - b[0].video_id || a[0].key - b[0].key;
+        return a.group_id - b.group_id || a.video_id - b.video_id || a.keyframe_id - b.keyframe_id;
       } else if (sortOption === "hc") {
-        return b[0].confidence - a[0].confidence;
+        return b.score - a.score;
       } else
         return 0;
 
@@ -68,7 +72,7 @@ export default function Videos({ handleOpen }) {
     if (groupOption === "g") {
       group = img.group_id;
     } else if (groupOption === "hc") {
-      group = img.confidence > 0.95 ? "Very High" : img.confidence > 0.9 ? "High" : img.confidence > 0.8 ? "Good" : img.confidence > 0.7 ? "Average" : "Low";
+      group = img.score > 0.95 ? "Very High" : img.score > 0.9 ? "High" : img.score > 0.8 ? "Good" : img.score > 0.7 ? "Average" : "Low";
     }
     if (!map.has(group)) {
       map.set(group, []);
@@ -89,9 +93,9 @@ export default function Videos({ handleOpen }) {
 
   const sortImagesFunction = (a, b) => {
     if (sortOption === "g") {
-      return a.group_id - b.group_id || a.video_id - b.video_id || a.key - b.key;
+      return a.group_id - b.group_id || a.video_id - b.video_id || a.keyframe_id - b.keyframe_id;
     } else if (sortOption === "hc") {
-      return b.confidence - a.confidence;
+      return b.score - a.score;
     } else
       return 0;
 
@@ -107,6 +111,9 @@ export default function Videos({ handleOpen }) {
 
   const { blobs, setBlobs } = useStoreImages();
 
+  let getKey = getImageKey_;
+  if (searchMode == "multiple") getKey = getChainImagesKey;
+
   // const [blobUrls, setBlobUrls] = useState({});
   useEffect(() => {
     let isMounted = true;
@@ -115,7 +122,7 @@ export default function Videos({ handleOpen }) {
       const urls = {};
       const uniqueMap = new Map();
       [...searchImages, ...images].forEach(img => {
-        const imageKey = getImageKey(img.key, img.video_id, img.group_id);
+        const imageKey = getImageKey(img.keyframe_id, img.video_id, img.group_id);
         if (!uniqueMap.has(imageKey)) uniqueMap.set(imageKey, img);
       });
       const allImages = [...uniqueMap.values()];
@@ -146,22 +153,21 @@ export default function Videos({ handleOpen }) {
       const isFocusedInside = ref.current && (ref.current === document.activeElement || ref.current.contains(document.activeElement));
       if (!isFocusedInside) return;
 
-      if (e.keyCode == 46 || e.keyCode == 8 || e.key.toLowerCase() == "d") {
-        const selectedElements = document.querySelectorAll("#selecto .image.selected");
-        if (!selectedElements.length) return;
-        // delete selected elements by sorting them by key
-        const selectedKeys = Array.from(selectedElements).map((el) => {
-          return el.getAttribute("data-key");
-        });
-        const newSortedImages = searchImages.filter(image => !selectedKeys.includes(`${image.key}-${image.video_id}-${image.group_id}`));
-        updateQuestionField({
-          'searchImages': newSortedImages,
-        });
-      }
+      // if (e.keyCode == 46 || e.keyCode == 8 || e.key.toLowerCase() == "d") {
+      //   const selectedElements = document.querySelectorAll("#selecto .image.selected");
+      //   if (!selectedElements.length) return;
+      //   // delete selected elements by sorting them by key
+      //   const selectedKeys = Array.from(selectedElements).map((el) => {
+      //     return el.getAttribute("data-key");
+      //   });
+      //   const newSortedImages = searchImages.filter(image => !selectedKeys.includes(`${image.keyframe_id}-${image.video_id}-${image.group_id}`));
+      //   updateQuestionField({
+      //     'searchImages': newSortedImages,
+      //   });
+      // }
 
       // control + a, select all
       if (e.ctrlKey && e.key.toLowerCase() === "a") {
-        console.log("SEARCH IMAGES RAN")
         e.preventDefault();
         const allElements = document.querySelectorAll("#selecto .image.search");
         // give all elements selected class
@@ -171,14 +177,14 @@ export default function Videos({ handleOpen }) {
         selectoRef.current.setSelectedTargets(Array.from(allElements));
       }
 
-      if (e.ctrlKey && e.key.toLowerCase() === "z") {
-        e.preventDefault();
-        undo();
-      }
-      if (e.ctrlKey && e.key.toLowerCase() === "y") {
-        e.preventDefault();
-        redo();
-      }
+      // if (e.ctrlKey && e.key.toLowerCase() === "z") {
+      //   e.preventDefault();
+      //   undo();
+      // }
+      // if (e.ctrlKey && e.key.toLowerCase() === "y") {
+      //   e.preventDefault();
+      //   redo();
+      // }
     }
     document.addEventListener("keydown", handleKeyDown);
 
@@ -217,7 +223,6 @@ export default function Videos({ handleOpen }) {
       // check xem 2 container giống hay khác
 
       const mode = sourceContainer === toContainer ? "same" : "different";
-      console.log({ mode, sourceContainer, toContainer })
       // lấy data 2 container
 
       const sourceContainerData = sourceContainer === "images" ? images : searchImages;
@@ -232,12 +237,10 @@ export default function Videos({ handleOpen }) {
       // if (!targetKey) return;
       // nếu không có thì append vào cái cuối cùng
       // TODO: KIỂM TRA XEM CÓ BỊ TRÙNG KO 
-      let getKey = getImageKey_;
-      if (searchMode == "multiple") getKey = getChainImagesKey;
+      
       if (!targetKey) {
         if (mode === "same") {
           if (sourceContainer == "searchImages") return;
-          
           const remainingImages = sourceContainerData.filter(img => !selectedKeys.includes(getKey(img)));
           const selectedImages = sourceContainerData.filter(img => selectedKeys.includes(getKey(img)));
           const newImages = [
@@ -247,8 +250,6 @@ export default function Videos({ handleOpen }) {
           updateQuestionField({ [sourceContainer]: newImages });
         }
         else if (mode === "different") {
-          console.log("WASSUp")
-          console.log(sourceContainerData)
           const remainingImages = sourceContainerData.filter(img => !selectedKeys.includes(getKey(img)));
 
           const selectedImages = sourceContainerData.filter(img => selectedKeys.includes(getKey(img)));
@@ -271,6 +272,7 @@ export default function Videos({ handleOpen }) {
         const dropIndex = toContainerData.findIndex(img =>
           getKey(img) === targetKey
         );
+        
         if (mode === "same") {
           if (sourceContainer == "searchImages") return;
           const remainingImages = sourceContainerData.filter(img =>
@@ -293,6 +295,7 @@ export default function Videos({ handleOpen }) {
           // update 2 cái array
         } else if (mode === "different") {
           // Filter out selected images from original array
+          
           const remainingImages = sourceContainerData.filter(img =>
             !selectedKeys.includes(getKey(img))
           );
@@ -382,6 +385,7 @@ export default function Videos({ handleOpen }) {
       <div className="relative overflow-y-scroll flex-1 container " ref={ref} tabIndex={0}>
         <Selecto
           ref={selectoRef}
+          
           dragContainer={".container"}
           selectableTargets={["#selecto .image"]}
           onSelect={e => {
@@ -406,10 +410,10 @@ export default function Videos({ handleOpen }) {
 
         <div className={clsx("grid-cols-5 gap-4 p-4", { "grid": groupOption === "n" })} id="selecto">
           {/* {groupOption === "n" ? searchImages?.map((image) => {
-            const src = getImage(blobs, getImageKey(image.key, image.video_id, image.group_id));
+            const src = getImage(blobs, getImageKey(image.keyframe_id, image.video_id, image.group_id));
             return (
               <figure className="relative image p-2 hover:bg-[rgba(68,171,255,0.15)] [&_*]:select-none [&_*]:pointer-events-none search"
-                key={`${image.key}-${image.video_id}-${image.group_id}`}
+                key={`${image.keyframe_id}-${image.video_id}-${image.group_id}`}
                 data-key={`${image.key}-${image.video_id}-${image.group_id}`}
                 data-container={"searchImages"}
                 onDoubleClick={() => handleOpen(image)}
@@ -421,9 +425,9 @@ export default function Videos({ handleOpen }) {
                 />
                 <figcaption className="flex flex-row justify-between ">
                   <Typography variant="caption" className=" text-center text-black bg-opacity-50 p-1 rounded">
-                    L{image.group_id} / V{image.video_id} / {image.key}
+                    L{image.group_id} / V{image.video_id} / {image.keyframe_id}
                   </Typography>
-                  <Typography className={clsx(image.confidence > 0.95 ? "text-blue-300" : image.confidence > 0.9 ? "text-yellow-500" : image.confidence > 0.8 ? "text-gray-400" : image.confidence > 0.7 ? "text-orange-900" : "")}>{image.confidence}</Typography>
+                  <Typography className={clsx(image.score > 0.95 ? "text-blue-300" : image.score > 0.9 ? "text-yellow-500" : image.score > 0.8 ? "text-gray-400" : image.score > 0.7 ? "text-orange-900" : "")}>{image.score}</Typography>
                 </figcaption>
               </figure>
             )
@@ -440,11 +444,11 @@ export default function Videos({ handleOpen }) {
                     <AccordionDetails className="grid grid-cols-5 p-4 max-h-[400px] overflow-auto" id="selecto">
                       {
                         image.images.map((img) => {
-                          const src = getImage(blobs, getImageKey(img.key, img.video_id, img.group_id));
+                          const src = getImage(blobs, getKey(img));
                           return (
                             <figure className="relative image p-2 hover:bg-[rgba(68,171,255,0.15)] [&_*]:select-none [&_*]:pointer-events-none search"
-                              key={`${img.key}-${img.video_id}-${img.group_id}`}
-                              data-key={`${img.key}-${img.video_id}-${img.group_id}`}
+                              key={getKey(img)}
+                              data-key={getKey(img)}
                               data-container={"searchImages"}
                               onDoubleClick={() => handleOpen(img)}
                             >
@@ -455,9 +459,9 @@ export default function Videos({ handleOpen }) {
                               />
                               <figcaption className="flex flex-row justify-between ">
                                 <Typography variant="caption" className=" text-center text-black bg-opacity-50 p-1 rounded">
-                                  L{img.group_id} / V{img.video_id} / {img.key}
+                                  {img.group_id} / {img.video_id} / {String(img.keyframe_id).split("_")[1]}
                                 </Typography>
-                                <Typography className={clsx(img.confidence > 0.95 ? "text-blue-300" : img.confidence > 0.9 ? "text-yellow-500" : img.confidence > 0.8 ? "text-gray-400" : img.confidence > 0.7 ? "text-orange-900" : "")}>{img.confidence}</Typography>
+                                <Typography className={clsx(img.score > 0.95 ? "text-blue-300" : img.score > 0.9 ? "text-yellow-500" : img.score > 0.8 ? "text-gray-400" : img.score > 0.7 ? "text-orange-900" : "")}>{img.score.toFixed(4)}</Typography>
                               </figcaption>
                             </figure>
                           )
@@ -474,33 +478,29 @@ export default function Videos({ handleOpen }) {
                     <AccordionSummary>
                       {imageGroup.group}
                     </AccordionSummary>
-                    <AccordionDetails className=" p-4 max-h-[400px] overflow-auto space-y-2" id="selecto">
+                    <AccordionDetails className=" p-4 overflow-auto space-y-2" id="selecto">
                       {
                         imageGroup.images.map((imageChain, index) => {
                           return (
                             <Paper className="flex flex-row justify-between image search hover:!bg-[rgba(68,171,255,0.15)]"
-                              key={getChainImagesKey(imageChain)}
-                              data-key={getChainImagesKey(imageChain)}
+                              key={getKey(imageChain)}
+                              data-key={getKey(imageChain)}
                               data-container={"searchImages"}
                             >
                               {
                                 imageChain.map((image) => {
-                                  const src = getImage(blobs, getImageKey(image.key, image.video_id, image.group_id));
                                   return (
                                     <figure className="relative p-2 [&_*]:select-none [&_*]:pointer-events-none"
-                                      key={`${image.key}-${image.video_id}-${image.group_id}`}
+                                      key={getImageKey_(image)}
                                       onDoubleClick={() => handleOpen(image)}
                                     >
-                                      <img src={src}
-                                      // onError={(e) => {
-                                      //     e.target.src = ""
-                                      // }}
+                                      <img src={imagePath(getImageKey_(image))}
                                       />
                                       <figcaption className="flex flex-row justify-between ">
                                         <Typography variant="caption" className=" text-center text-black bg-opacity-50 p-1 rounded">
-                                          L{image.group_id} / V{image.video_id} / {image.key}
+                                          {image.group_id} / {image.video_id} / {String(image.keyframe_id).split("_")[1]}
                                         </Typography>
-                                        <Typography className={clsx(image.confidence > 0.95 ? "text-blue-300" : image.confidence > 0.9 ? "text-yellow-500" : image.confidence > 0.8 ? "text-gray-400" : image.confidence > 0.7 ? "text-orange-900" : "")}>{image.confidence}</Typography>
+                                        <Typography className={clsx(image.score > 0.95 ? "text-blue-300" : image.score > 0.9 ? "text-yellow-500" : image.score > 0.8 ? "text-gray-400" : image.score > 0.7 ? "text-orange-900" : "")}>{image.score.toFixed(4)}</Typography>
                                       </figcaption>
                                     </figure>
                                   )
