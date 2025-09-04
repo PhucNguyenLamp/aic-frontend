@@ -18,7 +18,6 @@ export default function Keyframes({ handleOpen }) {
 
     const currentQuestion = getCurrentQuestion();
     const images = currentQuestion.images;
-
     const imagesMode = images.length == 0 ? "both" : images[0]?.items ? "multiple" : "single";
 
     const undoArray = [...currentQuestion.undoArray];
@@ -37,7 +36,7 @@ export default function Keyframes({ handleOpen }) {
             // Build CSV lines (no header)
             const lines = images.map(image => {
                 const groupVideo = `${image.group_id}_${image.video_id}`;
-                const keyframePart = image.keyframe_id?.split("_")[1] || "";
+                const keyframePart = image.keyframe_id || "";
                 return `${groupVideo},${keyframePart}`;
             });
             // Convert to CSV string
@@ -48,7 +47,7 @@ export default function Keyframes({ handleOpen }) {
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = url;
-            link.setAttribute("download", `${currentQuestion.questionName}-export.csv`);
+            link.setAttribute("download", `${currentQuestion.questionName}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -57,7 +56,7 @@ export default function Keyframes({ handleOpen }) {
 
             const lines = images.map(image => {
                 const groupVideo = `${image.group_id}_${image.video_id}`;
-                const keyframePart = image.keyframe_id?.split("_")[1] || "";
+                const keyframePart = image.keyframe_id || "";
                 return `${groupVideo},${keyframePart},${safeAnswer(answer)}`;
             });
 
@@ -75,7 +74,7 @@ export default function Keyframes({ handleOpen }) {
             const lines = images.map(image => {
                 const items = image.items;
                 const groupVideo = `${items[0].group_id}_${items[0].video_id}`;
-                const keyframePart = items.map(img => img.keyframe_id?.split("_")[1] || "").join(",");
+                const keyframePart = items.map(img => img.keyframe_id || "").join(",");
                 return `${groupVideo},${keyframePart}`;
             });
             // Convert to CSV string
@@ -241,7 +240,7 @@ export default function Keyframes({ handleOpen }) {
                                         />
                                         <figcaption className="flex flex-row justify-between ">
                                             <Typography variant="caption" className=" text-center text-black bg-opacity-50 p-1 rounded">
-                                                {image.group_id} / {image.video_id} / {String(image.keyframe_id).split("_")[1]}
+                                                {image.group_id} / {image.video_id} / {image.keyframe_id}
                                             </Typography>
                                             <Typography className={clsx(image.score > 0.95 ? "text-blue-300" : image.score > 0.9 ? "text-yellow-500" : image.score > 0.8 ? "text-gray-400" : image.score > 0.7 ? "text-orange-900" : "")}>{image.score.toFixed(4)}</Typography>
                                         </figcaption>
@@ -267,7 +266,7 @@ export default function Keyframes({ handleOpen }) {
                                                         />
                                                         <figcaption className="flex flex-row justify-between ">
                                                             <Typography variant="caption" className=" text-center text-black bg-opacity-50 p-1 rounded">
-                                                                {image.group_id} / {image.video_id} / {String(image.keyframe_id).split("_")[1]}
+                                                                {image.group_id} / {image.video_id} / {image.keyframe_id}
                                                             </Typography>
                                                             <Typography className={clsx(image.score > 0.95 ? "text-blue-300" : image.score > 0.9 ? "text-yellow-500" : image.score > 0.8 ? "text-gray-400" : image.score > 0.7 ? "text-orange-900" : "")}>{image.score.toFixed(4)}</Typography>
                                                         </figcaption>

@@ -47,9 +47,11 @@ export const searchKeyframes = async (payload) => {
                     w_visual: query.keyframeSlider,
                     w_caption: query.captionSlider,
                     w_ocr: query.OCRSlider
-                }
+                },
+                user_tags: query.userTags
             }
         }
+
         response = await api.post("/search/single", request);
         return response.data.fused;
     } else {
@@ -78,9 +80,11 @@ export const searchKeyframes = async (payload) => {
                     w_visual: query.keyframeSlider,
                     w_caption: query.captionSlider,
                     w_ocr: query.OCRSlider
-                }
+                },
+                user_tags: query.userTags
             }
         }}))
+        console.log(request)
         const events = { events: request }
         response = await api.post("/search/trake", events);
         return response.data.trake_paths.paths
@@ -93,7 +97,7 @@ export const searchKeyframes = async (payload) => {
 
 export const getHistory = async () => {
     // return ví dụ
-    let history = await api.get("/search/history")
+    let history = await api.get("/history")
     history = history.data;
     // const grouped = new Map();
 
@@ -103,13 +107,13 @@ export const getHistory = async () => {
     //     }
     //     grouped.get(item.questionName).push(item);
     // }
-
+    console.log(history)
     const formatted = Object.entries(history).map(([questionName, historyItems]) => ({
         id: questionName,
         label: questionName,
-        children: historyItems.map(({ timestamp }) => ({
+        children: historyItems.map(({ timestamp, kind }) => ({
             id: timestamp,
-            label: (new Date(timestamp)).toLocaleString(undefined, options),
+            label: (new Date(timestamp)).toLocaleString(undefined, options) + "-----" + kind.toUpperCase(),
         }))
     }));
 
@@ -120,10 +124,15 @@ export const getHistory = async () => {
 
 export const getHistoryId = async (timestamp, limit = 100) => {
     const params = { timestamp, limit };
-    const data = await api.get("/search", { params });
+    const data = await api.get("/history/by-timestamp", { params });
     return data.data;
 };
 
+export async function fetchTags({ signal }) {
+    const res = await fetch('/tags.json', { cache: 'force-cache', signal });
+    if (!res.ok) throw new Error('Failed to load tags.json');
+    return (await res.json());
+}
 
 const options = {
     year: "numeric",

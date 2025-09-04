@@ -7,6 +7,7 @@ import { useStore } from "@/stores/questions";
 import { useStoreImages } from "@/stores/blobs";
 import { get } from "idb-keyval";
 import useLocalStorageState from "use-local-storage-state";
+import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react'
 
 export default function Videos({ handleOpen }) {
   // const [sortOption, setSortOption] = useLocalStorageState("sortOption", {defaultValue: "g"}); // d: default g: groupvid hc: high score
@@ -437,11 +438,11 @@ export default function Videos({ handleOpen }) {
             searchMode == "single" ?
               groupedSearchImages?.map((image) => {
                 return (
-                  <Accordion key={image.group}>
-                    <AccordionSummary>
+                  <Disclosure key={image.group}>
+                    <DisclosureButton className=" text-left px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded">
                       {image.group}
-                    </AccordionSummary>
-                    <AccordionDetails className="grid grid-cols-5 p-4 max-h-[400px] overflow-auto" id="selecto">
+                    </DisclosureButton>
+                    <DisclosurePanel className="grid grid-cols-5 p-4 max-h-[400px] overflow-auto" id="selecto">
                       {
                         image.images.map((img) => {
                           const src = getImage(blobs, getKey(img));
@@ -459,7 +460,7 @@ export default function Videos({ handleOpen }) {
                               />
                               <figcaption className="flex flex-row justify-between ">
                                 <Typography variant="caption" className=" text-center text-black bg-opacity-50 p-1 rounded">
-                                  {img.group_id} / {img.video_id} / {String(img.keyframe_id).split("_")[1]}
+                                  {img.group_id} / {img.video_id} / {img.keyframe_id}
                                 </Typography>
                                 <Typography className={clsx(img.score > 0.95 ? "text-blue-300" : img.score > 0.9 ? "text-yellow-500" : img.score > 0.8 ? "text-gray-400" : img.score > 0.7 ? "text-orange-900" : "")}>{img.score.toFixed(4)}</Typography>
                               </figcaption>
@@ -467,18 +468,18 @@ export default function Videos({ handleOpen }) {
                           )
                         })
                       }
-                    </AccordionDetails>
-                  </Accordion>
+                    </DisclosurePanel>
+                  </Disclosure>
                 )
               })
               :
               groupedSearchImagesChain?.map((imageGroup) => {
                 return (
-                  <Accordion key={imageGroup.group}>
-                    <AccordionSummary>
+                  <Disclosure key={imageGroup.group}>
+                    <DisclosureButton className=" text-left px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded">
                       {imageGroup.group}
-                    </AccordionSummary>
-                    <AccordionDetails className=" p-4 overflow-auto space-y-2" id="selecto">
+                    </DisclosureButton>
+                    <DisclosurePanel className=" p-4 overflow-auto space-y-2" id="selecto">
                       {
                         imageGroup.images.map((imageChain, index) => {
                           return (
@@ -498,7 +499,7 @@ export default function Videos({ handleOpen }) {
                                       />
                                       <figcaption className="flex flex-row justify-between ">
                                         <Typography variant="caption" className=" text-center text-black bg-opacity-50 p-1 rounded">
-                                          {image.group_id} / {image.video_id} / {String(image.keyframe_id).split("_")[1]}
+                                          {image.group_id} / {image.video_id} / {image.keyframe_id}
                                         </Typography>
                                         <Typography className={clsx(image.score > 0.95 ? "text-blue-300" : image.score > 0.9 ? "text-yellow-500" : image.score > 0.8 ? "text-gray-400" : image.score > 0.7 ? "text-orange-900" : "")}>{image.score.toFixed(4)}</Typography>
                                       </figcaption>
@@ -509,8 +510,8 @@ export default function Videos({ handleOpen }) {
                             </Paper>)
                         })
                       }
-                    </AccordionDetails>
-                  </Accordion>
+                    </DisclosurePanel>
+                  </Disclosure>
                 )
               })
           }

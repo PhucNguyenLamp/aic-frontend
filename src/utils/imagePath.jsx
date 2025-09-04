@@ -5,7 +5,7 @@ const VIDEOS_URL = import.meta.env.VITE_VIDEOS_PATH || 'http://100.113.186.28:80
 
 export function imagePath(key){
     const [id, videoid, groupid] = key.split("-");
-    return `${KEYFRAMES_URL}/${String(groupid).padStart(2, '0')}/${String(videoid).padStart(3, '0')}/keyframes/${String(id).padStart(8, '0')}.webp`
+    return `${KEYFRAMES_URL}/${String(groupid).padStart(2, '0')}/${String(videoid).padStart(3, '0')}/${String(id)}.webp`
 }
 
 export function videoPath(videoid, groupid) {

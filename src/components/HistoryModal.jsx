@@ -8,8 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 
 
 export default function HistoryModal() {
-    const { questions,
-        updateQuestionField, currentQuestionId, setCurrentQuestion, setQuestions, toggleFetched, setSearchQuestions } = useStore();
+    const { questions, updateQuestionField, currentQuestionId, setCurrentQuestion, setQuestions, toggleFetched, setSearchQuestions, setQueries } = useStore();
     const [open, setOpen] = useState(false);
     const apiRef = useTreeViewApiRef();
 
@@ -21,17 +20,57 @@ export default function HistoryModal() {
 
     async function loadHistoryId(timeId) {
         let history = await getHistoryId(timeId);
-        const { question_filename, timestamp, single_response, single_request } = history;
-
+        const { question_filename, timestamp, single_response, single_request, trake_request, trake_response } = history;
+        console.log(trake_request)
         setCurrentQuestion(question_filename);
-        updateQuestionField({
-            // question_filename, // not needed
-            // timestamp, // the fuck
-            // searchImages: single_response.fused,
-            single_request,
-        });
-        setSearchQuestions(single_response.fused)
+        
+        let queries;
+        if (single_request)
+            queries = [{
+                captionSearchText: single_request.caption.text,
+                captionSearchRRF: single_request.caption.fusion === "rrf",
+                captionSearchWeight: single_request.caption.weighted,
+                captionSearchTagBoostAlpha: single_request.caption.tag_boost_alpha,
+
+                captionSlider: 0, // chưa có 
+                keyframeSlider: 0, // chưa có 
+                OCRSlider: 0, // chưa có 
+
+                keyframeSearchText: single_request.keyframe.text,
+                keyframeSearchTagBoostAlpha: single_request.keyframe.tag_boost_alpha,
+                OCRSearchText: single_request.ocr.text,
+
+                userTags: single_request?.userTags || [],
+            }];
+        else
+            queries = trake_request.events.map(event => {
+                let query = event.query;
+                return {
+                    captionSearchText: query.req.caption.text,
+                    captionSearchRRF: query.req.caption.fusion === "rrf",
+                    captionSearchWeight: query.req.caption.weighted,
+                    captionSearchTagBoostAlpha: query.req.caption.tag_boost_alpha,
+
+                    captionSlider: 0, // chưa có 
+                    keyframeSlider: 0, // chưa có 
+                    OCRSlider: 0, // chưa có 
+
+                    keyframeSearchText: query.req.keyframe.text,
+                    keyframeSearchTagBoostAlpha: query.req.keyframe.tag_boost_alpha,
+                    OCRSearchText: query.req.ocr.text,
+
+                    userTags: query?.userTags || [],
+                }
+            })
+        setQueries(queries)
+        let response
+        if (single_response)
+            response = single_response.fused;
+        else
+            response = trake_response.paths;
+        setSearchQuestions(response)
         toggleFetched();
+        setOpen(false);
     }
 
     async function handleSelectedItemsChange(event, timeId) {
@@ -64,10 +103,12 @@ export default function HistoryModal() {
                     <div className="relative flex justify-center w-full mb-2 h-[80vh]">
                         <div className="absolute -top-12 -left-14 text-4xl">📜</div>
                         <div className="relative h-full w-full space-y-4 p-1 overflow-y-auto">
-                            <RichTreeView items={data}
+                            <RichTreeView
+                                items={data}
                                 apiRef={apiRef}
                                 onSelectedItemsChange={handleSelectedItemsChange}
                             />
+
                         </div>
                     </div>
                     <QuestionsReader />

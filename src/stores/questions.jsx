@@ -1,19 +1,23 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-const defaultQuestion = {
-    questionName: 'default',
-    question: 'default',
-    images: [],
-    searchImages: [],
-    nodes: [], // DEPRECATED
-    edges: [], // DEPRECATED
-    undoArray: [],
-    redoArray: [],
-    undoSearchArray: [],
-    redoSearchArray: []
+
+const createQuestion = (questionName) => {
+    return {
+        questionName: questionName,
+        question: questionName,
+        images: [],
+        searchImages: [],
+        nodes: [], // DEPRECATED
+        edges: [], // DEPRECATED
+        undoArray: [],
+        redoArray: [],
+        undoSearchArray: [],
+        redoSearchArray: []
+    }
 }
 
+const defaultQuestion = createQuestion('default');
 
 export const useStore = create(
     persist((set, get) => ({
@@ -24,7 +28,9 @@ export const useStore = create(
 
 
         searchQuestions: [],
-        setSearchQuestions: (questions) => set({ searchQuestions: questions }),
+        setSearchQuestions: (questions) => {
+            set({ searchQuestions: questions })
+        },
 
         formField: {},
         setFormField: (field) => set({ formField: { ...get().formField, ...field } }),
@@ -33,6 +39,24 @@ export const useStore = create(
             set((state) => ({ id: state.id + 1 }));
             return get().id.toString();
         },
+
+        queries: [{
+            captionSearchText: "",
+            captionSearchRRF: true,          // true = RRF, false = weighted
+            captionSearchWeight: 0.1,
+            captionSearchTagBoostAlpha: 0,
+
+            captionSlider: 0.1,
+            keyframeSlider: 0.1,
+            OCRSlider: 0.1,
+
+            keyframeSearchText: "",
+            keyframeSearchTagBoostAlpha: 0,
+            OCRSearchText: "",
+
+            userTags: [],
+        }],
+        setQueries: (queries) => set({ queries: queries }),
 
         sortOption: "g",
         setSortOption: (option) => set({ sortOption: option }),
@@ -46,7 +70,20 @@ export const useStore = create(
 
         getCurrentQuestion: () => get().questions[get().currentQuestionId],
 
-        setCurrentQuestion: (id) => set({ currentQuestionId: id }),
+        setCurrentQuestion: (id) => {
+            // check if question exist
+            // if not then add it to questions
+            if (!get().questions[id]) {
+                set((state) => ({
+                    questions: {
+                        ...state.questions,
+                        [id]: createQuestion(id)
+                    }
+                }));
+            }
+            // then set it
+            set({ currentQuestionId: id })
+        },
 
         addQuestions: (questions) => {
             set((state) => ({
@@ -61,9 +98,9 @@ export const useStore = create(
                 questions: questions,
             }))
         },
-        updateQuestionField: (fields, history = true, id = get().currentQuestionId ) => {
+        updateQuestionField: (fields, history = true, id = get().currentQuestionId) => {
             const currentQuestion = get().getCurrentQuestion();
-            const { undoArray, undoSearchArray, images, searchImages } = currentQuestion;
+            const { undoArray = [], undoSearchArray = [], images, searchImages } = currentQuestion;
 
             const historyData = history ? {
                 undoArray: [...undoArray, images],
@@ -114,14 +151,14 @@ export const useStore = create(
             const currentQuestion = get().getCurrentQuestion();
             const redoArray = [...currentQuestion.redoArray];
             if (redoArray.length === 0) return;
-            
+
             const images = [...currentQuestion.images];
             const searchImages = [...currentQuestion.searchImages];
 
             const undoArray = [...currentQuestion.undoArray];
             const undoSearchArray = [...currentQuestion.undoSearchArray];
             const redoSearchArray = [...currentQuestion.redoSearchArray];
-            
+
             const redoTopElement = redoArray.pop()
             const redoSearchTopElement = redoSearchArray.pop()
             const updateQuestionField = get().updateQuestionField;

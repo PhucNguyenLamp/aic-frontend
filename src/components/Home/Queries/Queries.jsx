@@ -1,28 +1,35 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { Box, Button, Paper, Stack } from "@mui/material";
 import QueryRow from "./QueryRow";
 import { useStore } from "@/stores/questions";
 import { searchKeyframes } from "@/api/services/query";
+import { useQueryClient } from "@tanstack/react-query";
 
 const defaultItem = {
     captionSearchText: "",
-    captionSearchRRF: true,          // true = RRF, false = weighted
-    captionSearchWeight: 0.1,
+    captionSearchRRF: false,
+    captionSearchWeight: 0,
     captionSearchTagBoostAlpha: 0,
-
-    captionSlider: 0.1,
-    keyframeSlider: 0.1,
-    OCRSlider: 0.1,
 
     keyframeSearchText: "",
     keyframeSearchTagBoostAlpha: 0,
+
     OCRSearchText: "",
-};
+
+    captionSlider: 0, // chưa có 
+    keyframeSlider: 0, // chưa có 
+    OCRSlider: 0, // chưa có 
+
+    userTags: [],
+}
 
 export default function Queries() {
-    const { control, handleSubmit } = useForm({
-        defaultValues: { queries: [defaultItem] },
+    const { queries } = useStore();
+    const queryClient = useQueryClient();
+
+    const { control, handleSubmit, reset } = useForm({
+        defaultValues: { queries: queries },
     });
 
     const { setSearchQuestions, currentQuestionId, formField, setFormField } = useStore();
@@ -32,6 +39,10 @@ export default function Queries() {
         name: "queries",
     });
 
+    useEffect(() => {
+        reset({ queries: queries })
+    }, [queries])
+
     const onSubmit = async (data) => {
         const payload = {
             currentQuestionId,
@@ -39,6 +50,9 @@ export default function Queries() {
         };
         const responseData = await searchKeyframes(payload);
         setSearchQuestions(responseData);
+
+        // invalidate queryKey: ['history'],
+        queryClient.invalidateQueries({ queryKey: ['history'] });
     };
 
     return (

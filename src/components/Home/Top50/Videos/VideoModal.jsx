@@ -22,7 +22,7 @@ export default function VideoModal({ image, open, onClose }) {
     const fps = getFps(videoid) || 25;
     const frameDuration = 1 / fps;
 
-    const keyframe_id = Number(image?.keyframe_id.split('_')[1]);
+    const keyframe_id = Number(image?.keyframe_id);
     
     const allTimeStamps = images?.map(img => img.video_id == image?.video_id && img.group_id == image?.group_id ? img.keyframe_id : null).filter(Boolean);
     const markers = allTimeStamps?.map((keyframe_id) => ({
@@ -110,11 +110,11 @@ export default function VideoModal({ image, open, onClose }) {
         // Convert to WebP Blob
         canvas.toBlob(async (blob) => {
             if (!blob) return;
-            const blobKey = getImageKey(`keyframe_${keyframe_id}`, image.video_id, image.group_id);
+            const blobKey = getImageKey(keyframe_id, image.video_id, image.group_id);
             await set(blobKey, blob);
             // Update frontend state with blob URL
             const newImage = {
-                keyframe_id: `keyframe_${keyframe_id}`,
+                keyframe_id: keyframe_id,
                 video_id: image.video_id,
                 group_id: image.group_id,
                 blobKey,
