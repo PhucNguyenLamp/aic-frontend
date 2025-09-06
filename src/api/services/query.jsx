@@ -51,7 +51,7 @@ export const searchKeyframes = async (payload) => {
                 user_tags: query.userTags
             }
         }
-
+        console.log(request)
         response = await api.post("/search/single", request);
         return response.data.fused;
     } else {
@@ -107,7 +107,7 @@ export const getHistory = async () => {
     //     }
     //     grouped.get(item.questionName).push(item);
     // }
-    console.log(history)
+    // console.log(history)
     const formatted = Object.entries(history).map(([questionName, historyItems]) => ({
         id: questionName,
         label: questionName,

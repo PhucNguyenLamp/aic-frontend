@@ -126,7 +126,7 @@ export default function VideoModal({ image, open, onClose }) {
             // setSortedImages(prev => [...prev, newImage]);
             updateQuestionField({'images': [...images, newImage]});
             // undoRef.current.push(images);
-            onClose();
+            // onClose();
         }, "image/webp", 0.9);
     };
 

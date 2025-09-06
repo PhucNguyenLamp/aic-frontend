@@ -25,22 +25,23 @@ export default function HistoryModal() {
         setCurrentQuestion(question_filename);
         
         let queries;
+        console.log(single_request)
         if (single_request)
             queries = [{
-                captionSearchText: single_request.caption.text,
-                captionSearchRRF: single_request.caption.fusion === "rrf",
-                captionSearchWeight: single_request.caption.weighted,
-                captionSearchTagBoostAlpha: single_request.caption.tag_boost_alpha,
+                captionSearchText: single_request.req.caption.text,
+                captionSearchRRF: single_request.req.caption.fusion === "rrf",
+                captionSearchWeight: single_request.req.caption.weighted,
+                captionSearchTagBoostAlpha: single_request.req.caption.tag_boost_alpha,
 
-                captionSlider: 0, // chưa có 
-                keyframeSlider: 0, // chưa có 
-                OCRSlider: 0, // chưa có 
+                captionSlider: single_request.ctrl.fusion.w_caption,
+                keyframeSlider: single_request.ctrl.fusion.w_keyframe,
+                OCRSlider: single_request.ctrl.fusion.w_ocr,
 
-                keyframeSearchText: single_request.keyframe.text,
-                keyframeSearchTagBoostAlpha: single_request.keyframe.tag_boost_alpha,
-                OCRSearchText: single_request.ocr.text,
+                keyframeSearchText: single_request.req.keyframe.text,
+                keyframeSearchTagBoostAlpha: single_request.req.keyframe.tag_boost_alpha,
+                OCRSearchText: single_request.req.ocr.text,
 
-                userTags: single_request?.userTags || [],
+                userTags: single_request.ctrl.user_tags,
             }];
         else
             queries = trake_request.events.map(event => {
@@ -51,15 +52,15 @@ export default function HistoryModal() {
                     captionSearchWeight: query.req.caption.weighted,
                     captionSearchTagBoostAlpha: query.req.caption.tag_boost_alpha,
 
-                    captionSlider: 0, // chưa có 
-                    keyframeSlider: 0, // chưa có 
-                    OCRSlider: 0, // chưa có 
+                    captionSlider: query.ctrl.fusion.w_caption,
+                    keyframeSlider: query.ctrl.fusion.w_keyframe,
+                    OCRSlider: query.ctrl.fusion.w_ocr,
 
                     keyframeSearchText: query.req.keyframe.text,
                     keyframeSearchTagBoostAlpha: query.req.keyframe.tag_boost_alpha,
                     OCRSearchText: query.req.ocr.text,
 
-                    userTags: query?.userTags || [],
+                    userTags: query.ctrl.user_tags,
                 }
             })
         setQueries(queries)
