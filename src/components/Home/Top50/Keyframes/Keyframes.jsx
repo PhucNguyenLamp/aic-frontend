@@ -156,7 +156,7 @@ export default function Keyframes({ handleOpen }) {
     }
 
     return (
-        <div className="relative flex flex-col elements w-full container images" >
+        <div className="relative flex flex-col elements w-full selecto-container images" >
             <Box className="sticky flex items-center h-fit">
                 <Button className="h-[56px]"
                     disabled={undoArray.length === 0}
@@ -199,10 +199,10 @@ export default function Keyframes({ handleOpen }) {
                 <TextField multiline id="outlined-basic" label="Answer" variant="outlined" value={answer} onChange={e => setAnswer(e.target.value)} />
 
             </Box>
-            <div className={clsx("relative overflow-y-scroll space-y-2 h-full container", imagesMode == "multiple" && "p-3")} ref={ref} tabIndex={0}>
+            <div className={clsx("relative overflow-y-scroll space-y-2 h-full selecto-container", imagesMode == "multiple" && "p-3")} ref={ref} tabIndex={0}>
                 <Selecto
                     ref={selectoRef}
-                    dragContainer={".container"}
+                    dragContainer={".selecto-container"}
                     selectableTargets={["#selecto .image"]}
                     onSelect={e => {
                         e.added.forEach(el => {

@@ -29,14 +29,14 @@ export const searchKeyframes = async (payload) => {
             req: {
                 question_filename: payload.currentQuestionId,
                 caption: {
-                    tag_boost_alpha: query.captionSearchTagBoostAlpha,
+                    // tag_boost_alpha: query.captionSearchTagBoostAlpha,
                     text: query.captionSearchText,
                     fusion: query.captionSearchRRF ? "rrf" : "weighted",
                     weighted: query.captionSearchWeight,
                 },
                 keyframe: {
                     text: query.keyframeSearchText,
-                    tag_boost_alpha: query.keyframeSearchTagBoostAlpha
+                    // tag_boost_alpha: query.keyframeSearchTagBoostAlpha
                 },
                 ocr: {
                     text: query.OCRSearchText
@@ -48,11 +48,12 @@ export const searchKeyframes = async (payload) => {
                     w_caption: query.captionSlider,
                     w_ocr: query.OCRSlider
                 },
-                user_tags: query.userTags
+                user_tags: query.userTags,
+                tag_boost_alpha: query.tagBoostAlpha
             }
         }
-        console.log(request)
         response = await api.post("/search/single", request);
+        console.log(response)
         return response.data.fused;
     } else {
 
@@ -62,14 +63,12 @@ export const searchKeyframes = async (payload) => {
             req: {
                 question_filename: payload.currentQuestionId,
                 caption: {
-                    tag_boost_alpha: query.captionSearchTagBoostAlpha,
                     text: query.captionSearchText,
                     fusion: query.captionSearchRRF ? "rrf" : "weighted",
                     weighted: query.captionSearchWeight,
                 },
                 keyframe: {
                     text: query.keyframeSearchText,
-                    tag_boost_alpha: query.keyframeSearchTagBoostAlpha
                 },
                 ocr: {
                     text: query.OCRSearchText
@@ -81,7 +80,8 @@ export const searchKeyframes = async (payload) => {
                     w_caption: query.captionSlider,
                     w_ocr: query.OCRSlider
                 },
-                user_tags: query.userTags
+                user_tags: query.userTags,
+                tag_boost_alpha: query.tagBoostAlpha
             }
         }}))
         console.log(request)

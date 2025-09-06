@@ -11,6 +11,22 @@ import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react
 
 export default function Videos({ handleOpen }) {
   // const [sortOption, setSortOption] = useLocalStorageState("sortOption", {defaultValue: "g"}); // d: default g: groupvid hc: high score
+  const defaultCols = "grid-cols-5";
+  const zoomedOutCols = "grid-cols-7";
+  const [cols, setCols] = useState(defaultCols);
+
+  useEffect(() => {
+    const update = () => {
+      if (window.devicePixelRatio <= 0.5) {
+        setCols(zoomedOutCols);
+      } else {
+        setCols(defaultCols);
+      }
+    }
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  })
 
   // const [groupOption, setGroupOption] = useLocalStorageState("groupOption", {defaultValue: "n"}); // n: nogroup g: group hc: high score
   const { getCurrentQuestion, setCurrentQuestion, updateQuestionField, questions, currentQuestionId, undo, redo, sortOption, setSortOption, groupOption, setGroupOption, searchQuestions } = useStore();
@@ -207,7 +223,7 @@ export default function Videos({ handleOpen }) {
       if (!selectedElements.length) return;
       // container của hình chọn
       const sourceContainer = selectedElements[0].getAttribute("data-container");
-      
+
       // vị trí paste tới
       const currentElementMouseOn = document.elementFromPoint(e.clientX, e.clientY);
       // check xem có ở ngoài cửa sổ không
@@ -238,7 +254,7 @@ export default function Videos({ handleOpen }) {
       // if (!targetKey) return;
       // nếu không có thì append vào cái cuối cùng
       // TODO: KIỂM TRA XEM CÓ BỊ TRÙNG KO 
-      
+
       if (!targetKey) {
         if (mode === "same") {
           if (sourceContainer == "searchImages") return;
@@ -273,7 +289,7 @@ export default function Videos({ handleOpen }) {
         const dropIndex = toContainerData.findIndex(img =>
           getKey(img) === targetKey
         );
-        
+
         if (mode === "same") {
           if (sourceContainer == "searchImages") return;
           const remainingImages = sourceContainerData.filter(img =>
@@ -296,7 +312,7 @@ export default function Videos({ handleOpen }) {
           // update 2 cái array
         } else if (mode === "different") {
           // Filter out selected images from original array
-          
+
           const remainingImages = sourceContainerData.filter(img =>
             !selectedKeys.includes(getKey(img))
           );
@@ -342,13 +358,13 @@ export default function Videos({ handleOpen }) {
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("mouseup", handleDragUp);
+      document.removeEventListener("mouseup", handleDragUp); 1
       // document.removeEventListener("mousedown", handleRightClick);
     };
   }, [searchImages, undoArray, redoArray]);
 
   return (
-    <div className="relative flex flex-col elements w-full h-full searchImages"  >
+    <div className="relative flex flex-col elements w-full h-full searchImages">
       <Box className="sticky flex items-center h-fit">
         {/* <Button className="h-[56px]"
           disabled={undoArray?.length === 0}
@@ -383,11 +399,11 @@ export default function Videos({ handleOpen }) {
           <MenuItem value="hc">High Confidence</MenuItem>
         </Select>
       </Box>
-      <div className="relative overflow-y-scroll flex-1 container " ref={ref} tabIndex={0}>
+      <div className="relative overflow-y-scroll flex-1 selecto-container" ref={ref} tabIndex={0}>
         <Selecto
           ref={selectoRef}
-          
-          dragContainer={".container"}
+
+          dragContainer={".selecto-container"}
           selectableTargets={["#selecto .image"]}
           onSelect={e => {
             e.added.forEach(el => {
@@ -409,7 +425,7 @@ export default function Videos({ handleOpen }) {
           innerScrollOptions={{ container: ref.current, threshold: 30, speed: 15 }} // might fix later
         ></Selecto>
 
-        <div className={clsx("grid-cols-5 gap-4 p-4", { "grid": groupOption === "n" })} id="selecto">
+        <div className={clsx("gap-4 p-4", { "grid": groupOption === "n" })} id="selecto">
           {/* {groupOption === "n" ? searchImages?.map((image) => {
             const src = getImage(blobs, getImageKey(image.keyframe_id, image.video_id, image.group_id));
             return (
@@ -442,7 +458,7 @@ export default function Videos({ handleOpen }) {
                     <DisclosureButton className=" text-left px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded">
                       {image.group}
                     </DisclosureButton>
-                    <DisclosurePanel className="grid grid-cols-5 p-4 max-h-[400px] overflow-auto" id="selecto">
+                    <DisclosurePanel className={clsx("grid p-4 max-h-[30vh] overflow-auto", cols)} id="selecto">
                       {
                         image.images.map((img) => {
                           const src = getImage(blobs, getKey(img));

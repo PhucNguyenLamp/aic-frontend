@@ -28,11 +28,6 @@
 .custom-resizer-horizontal::before {
     content: '';
     position: absolute;
-    /* top: 0;
-    left: 50%;
-    width: 12px;
-    height: 100%;
-    transform: translateX(-50%); */
     left: 0;
     height: 12px;
     width: 100%;

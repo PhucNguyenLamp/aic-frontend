@@ -156,7 +156,7 @@ export default function QueryRow({ idx, control, onRemove }) {
 
             {/* Caption section */}
             <Box display="flex" alignItems="center" gap={2} mt={2} flexWrap="wrap">
-                <Typography variant="h5" style={{ marginRight: 8 }}>Caption Search</Typography>
+                <Typography variant="h6" style={{ marginRight: 8 }}>Caption Search</Typography>
 
                 <Controller
                     control={control}
@@ -214,16 +214,6 @@ export default function QueryRow({ idx, control, onRemove }) {
                     />
                 </Box>
 
-                <Box display="flex" alignItems="center" gap={2} style={{ flex: 1, minWidth: 320 }}>
-                    <Typography id="alpha-slider" className="flex-1" style={{ minWidth: 80 }}>
-                        Tag Boost α
-                    </Typography>
-                    <Controller
-                        control={control}
-                        name={`queries.${idx}.captionSearchTagBoostAlpha`}
-                        render={({ field: { value, onChange } }) => sliderRender(value, onChange)}
-                    />
-                </Box>
             </Box>
 
             {/* Keyframe */}
@@ -242,14 +232,6 @@ export default function QueryRow({ idx, control, onRemove }) {
                         />
                     )}
                 />
-                <Box display="flex" alignItems="center" gap={2} style={{ flex: 1, minWidth: 320 }}>
-                    <Typography className="flex-1">KF Tag Boost α</Typography>
-                    <Controller
-                        control={control}
-                        name={`queries.${idx}.keyframeSearchTagBoostAlpha`}
-                        render={({ field: { value, onChange } }) => sliderRender(value, onChange)}
-                    />
-                </Box>
             </Box>
 
             {/* OCR */}
@@ -270,6 +252,18 @@ export default function QueryRow({ idx, control, onRemove }) {
                 />
             </Box>
 
+            {/* tag boost alpha */}
+            <Box mt={2} display="flex" alignItems="center" gap={2} flexWrap="wrap">
+                <Box display="flex" alignItems="center" gap={2} style={{ flex: 1, minWidth: 320 }}>
+                    <Typography className="flex-1">Tag Boost α</Typography>
+                    <Controller
+                        control={control}
+                        name={`queries.${idx}.tagBoostAlpha`}
+                        render={({ field: { value, onChange } }) => sliderRender(value, onChange)}
+                    />
+                </Box>
+            </Box>
+            
             {/* users tag */}
             <Box mt={2} display="flex" alignItems="center" gap={2} flexWrap="wrap">
                 <Typography variant="h6" style={{ marginRight: 8 }}>
